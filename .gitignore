@@ -1,0 +1,121 @@
+# Node.js and React #
+#####################
+/node_modules/
+/build/
+.npm
+*.log
+npm-debug.log*
+yarn-error.log
+yarn-debug.log
+.pnp
+.pnp.js
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Python and FastAPI #
+######################
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv
+venv/
+ENV/
+env/
+*.venv
+
+# Distribution / packaging
+.Python
+dist/
+build/
+develop-eggs/
+eggs/
+.parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Pyenv
+.python-version
+
+# Pipenv
+Pipfile.lock
+
+# Poetry
+.poetry-cache/
+poetry.lock
+
+# pytest & coverage reports
+.cache
+.pytest_cache/
+.coverage
+.coverage.*
+*.cover
+*.py,cover
+.hypothesis/
+.coverage.*
+.coverage.*
+
+# Sphinx documentation
+docs/_build/
+
+# Docker #
+##########
+
+.dockerignore
+
+# Nginx #
+#########
+/nginx/log/
+/nginx/conf.d/
+
+# Certificates (if any, make sure to add them)
+*.pem
+*.cert
+*.key
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+
+# Other files #
+###############
+*.swp
+*.swo
+*.bak
+*.tmp
+/temp/
+/tmp
+*.sublime*
+
+# Specific to your environment #
+################################
+# Add here any other file or directory specific to your tools or environment
+# that you don't want to track in Git.

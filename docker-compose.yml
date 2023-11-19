@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: ./server/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://username:password@db:5432/dbname
+    depends_on:
+      - db
+    volumes:
+      - ./server:/code  # Sync local server directory with /code in the container
+    restart: on-failure  # Restart policy for development with file watching
+
+  client:
+    build:
+      context: .
+      dockerfile: ./client/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app  # Sync local client directory with /app in the container
+    restart: on-failure  # Restart policy for development with file watching
+
+  db:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=dbname
+    ports:
+      - "5433:5432"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ./client/build:/usr/share/nginx/html
+    depends_on:
+      - client
+    restart: on-failure
+
+
+volumes:
+  postgres_data:
