@@ -6,7 +6,7 @@ provider:
   stage: dev
   region: eu-west-1
   deploymentBucket:
-    name: devgurus-process-data-github-deployment-bucket
+    name: devgurus-process-data-deployment-bucket
 
 plugins:
   - serverless-python-requirements
@@ -16,7 +16,7 @@ package:
 
 functions:
   theLambda:
-    name: devgurus-process-data-github
+    name: devgurus-process-data
     handler: lambda_function.lambda_handler
     description: devgurus-process-data
     timeout: 5 # seconds
