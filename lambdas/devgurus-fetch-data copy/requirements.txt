@@ -1,0 +1,3 @@
+boto3
+requests
+hdx-python-api==6.1.4
