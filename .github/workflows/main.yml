@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  deploy:
-    name: deploy
+  deploy-process-data-lambda:
+    name: deploy-process-data-lambda
     runs-on: ubuntu-latest
     env:
       NODE_VERSION: 14.x # used for installing the serverless-python-requirements dependency from NPM
@@ -35,9 +35,75 @@ jobs:
             ${{ runner.os }}-
       - name: Install dependencies
         run: |
+          cd process-data
           python -m pip install --upgrade pip
-          pip install flake8 pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
+      # --------- Use Node and NPM to install serverless-python-requirements ---------
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install Node dependencies (specifically, serverless-python-requirements)
+        run: |
+          cd process-data
+          npm install
+
+      - name: Serverless Deploy
+        run: npx serverless remove
+          npx serverless deploy
+        working-directory: ./process-data # Specify your directory
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  deploy-fetch-data:
+    needs: deploy-process-data-lambda
+    name: deploy-fetch-data
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: 14.x # used for installing the serverless-python-requirements dependency from NPM
+    strategy:
+      matrix:
+        python-version:
+          - 3.11 # with a build matrix, you can specify a list of python versions to deploy with
+    steps:
+      # --------- use Python to install Python dependencies and run linter, tests, etc. ---------
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          # This path is specific to Ubuntu
+          path: ~/.cache/pip
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: |
+          cd fetch-data
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
       # --------- Use Node and NPM to install serverless-python-requirements ---------
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v1
@@ -57,12 +123,14 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Install Node dependencies (specifically, serverless-python-requirements)
-        run: npm install
+        run: |
+          cd fetch-data
+          npm install
 
       - name: Serverless Deploy
-        uses: dhollerbach/github-action-serverless-with-python-requirements@master
+        run: npx serverless remove
+          npx serverless deploy
+        working-directory: ./fetch-data # Specify your directory
         env:
-          # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-          # or if using AWS credentials directly
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
