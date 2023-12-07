@@ -63,7 +63,7 @@ jobs:
           npm install
 
       - name: Serverless Deploy
-        run: npx serverless remove
+        run: 
           npx serverless deploy
         working-directory: ./process-data # Specify your directory
         env:
@@ -128,7 +128,7 @@ jobs:
           npm install
 
       - name: Serverless Deploy
-        run: npx serverless remove
+        run: 
           npx serverless deploy
         working-directory: ./fetch-data # Specify your directory
         env:
