@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: '23.11.0'
+    hooks:
+      - id: black
+        args: ['--line-length=110']
+        files: ^(server|process-data|fetch-data)/
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: 'v7.32.0'
+    hooks:
+      - id: eslint
+        files: ^client/

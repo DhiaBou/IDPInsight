@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from routers.wahlkreis.wahlkreis_router import wahlkreis_router
+from routers.first_router.first_router_controller import first_router
 
 app = FastAPI()
 
@@ -15,4 +15,4 @@ async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
 
-app.include_router(wahlkreis_router)
+app.include_router(first_router)
