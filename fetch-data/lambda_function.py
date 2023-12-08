@@ -36,7 +36,7 @@ def download_hdx_resources(dataset_id, country):
                 # Download the file
                 r = requests.get(url, stream=True)
                 if r.status_code == 200:
-                    for chunk in r.iter_content(chunk_size=1024*1024):
+                    for chunk in r.iter_content(chunk_size=10240):
                         if chunk:
                             s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, filename)
                     print(f"Downloaded {filename}")
