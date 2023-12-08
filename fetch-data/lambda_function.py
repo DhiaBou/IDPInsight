@@ -1,19 +1,55 @@
+import mimetypes
+import io
 import boto3
-import csv
-from hdx.utilities.easy_logging import setup_logging
-from hdx.api.configuration import Configuration
-from hdx.data.dataset import Dataset
+import requests
+
+s3_bucket = "devgurus-raw-data"
+s3 = boto3.client("s3")
+dataset_id = "0d36e8ad-d2e8-4646-babd-61a41f99159a"
+
+
+def download_hdx_resources(dataset_id):
+    api_url = f"https://data.humdata.org/api/3/action/package_show?id={dataset_id}"
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        data = response.json()
+        if data["success"]:
+            resources = data["result"]["resources"]
+            for resource in resources:
+                url = resource["url"]
+                filename = resource.get("name")
+                format = resource.get("format").lower() if resource.get("format") else ""
+
+                # Determine the file extension
+                extension = (
+                    mimetypes.guess_extension(resource.get("mimetype")) if resource.get("mimetype") else ""
+                )
+                if not extension and format:
+                    extension = f".{format}"
+                if extension and not filename.endswith(extension):
+                    filename += extension
+
+                # Download the file
+                r = requests.get(url, stream=True)
+                if r.status_code == 200:
+                    with open(filename, "wb") as f:
+                        for chunk in r.iter_content(chunk_size=1024):
+                            if chunk:
+                                s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, "/tmp/" + filename)
+                    print(f"Downloaded {filename}")
+                else:
+                    print(f"Failed to download {filename}")
+        else:
+            print("Failed to find dataset")
+    else:
+        print("Failed to connect to HDX API")
 
 
 def lambda_handler(event, context):
-    s3 = boto3.client("s3")
-    bucket_name = "devgurus-raw-data"
-    file_name = "gothdx.csv"
-    csv_content = [["4"]]
+    download_hdx_resources(dataset_id)
 
-    with open("/tmp/" + file_name, "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerows(csv_content)
-
-    s3.upload_file("/tmp/" + file_name, bucket_name, file_name)
-    return {"statusCode": 200, "body": "File created and uploaded successfully."}
+    return {
+        "statusCode": 200,
+        "body": "Files downloaded and uploaded to S3 successfully",
+    }
