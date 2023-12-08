@@ -1,58 +1,52 @@
-import mimetypes
 import io
 import boto3
-import requests
+import hdx
+from hdx.api.configuration import Configuration
+from hdx.data.dataset import Dataset
+from hdx.utilities.downloader import Download
+from hdx.utilities.easy_logging import setup_logging
 
 s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")
-dataset_id = "0d36e8ad-d2e8-4646-babd-61a41f99159a"
-datasets = {
-    "Colombia": "ccb9dfdf-b432-4d50-bd19-ac5616a0447b",
-    "Sudan": "319dd40f-c0f8-4f6d-9a8e-9acf31007dd5",
-}
 
 
-def download_hdx_resources(dataset_id, country):
-    api_url = f"https://data.humdata.org/api/3/action/package_show?id={dataset_id}"
-    response = requests.get(api_url)
+def stream_path(self, path: str, errormsg: str):
+    try:
+        for chunk in self.response.iter_content(chunk_size=10240):
+            if chunk:
+                s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, path)
+        return path
+    except Exception:
+        pass
 
-    if response.status_code == 200:
-        data = response.json()
-        if data["success"]:
-            resources = data["result"]["resources"]
-            for resource in resources:
-                url = resource["url"]
-                filename = resource.get("name")
-                format = resource.get("format").lower() if resource.get("format") else ""
 
-                extension = (
-                    mimetypes.guess_extension(resource.get("mimetype")) if resource.get("mimetype") else ""
-                )
-                if not extension and format:
-                    extension = f".{format}"
-                if extension and not filename.endswith(extension):
-                    filename += extension
-                filename = "/tmp/" + country + "/" + filename
-                # Download the file
-                r = requests.get(url, stream=True)
-                if r.status_code == 200:
-                    for chunk in r.iter_content(chunk_size=10240):
-                        if chunk:
-                            s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, filename)
-                    print(f"Downloaded {filename}")
-                else:
-                    print(f"Failed to download {filename}")
-        else:
-            print("Failed to find dataset")
-    else:
-        print("Failed to connect to HDX API")
+hdx.utilities.downloader.Download.stream_path = stream_path
 
 
 def lambda_handler(event, context):
-    for country in datasets:
-        download_hdx_resources(datasets[country], country)
+    setup_logging()
+    Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
+    download_data_south_america()
+    download_data_africa()
 
     return {
         "statusCode": 200,
         "body": "Files downloaded and uploaded to S3 successfully",
     }
+
+
+def download_data_south_america():
+    download_all_resources_for_dataset("ccb9dfdf-b432-4d50-bd19-ac5616a0447b", "Colombia")
+
+
+def download_data_africa():
+    download_all_resources_for_dataset("319dd40f-c0f8-4f6d-9a8e-9acf31007dd5", "Sudan")
+
+
+def download_all_resources_for_dataset(dataset_id, country_name):
+    dataset = Dataset.read_from_hdx(dataset_id)
+    resources = Dataset.get_all_resources([dataset])
+    path = "/tmp/" + country_name + "/"
+    for resource in resources:
+        url, path = resource.download(path)
+        print("Resource URL %s downloaded to %s\n" % (url, path))
