@@ -6,9 +6,13 @@ import requests
 s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")
 dataset_id = "0d36e8ad-d2e8-4646-babd-61a41f99159a"
+datasets = {
+    "Colombia": "ccb9dfdf-b432-4d50-bd19-ac5616a0447b",
+    "Sudan": "319dd40f-c0f8-4f6d-9a8e-9acf31007dd5",
+}
 
 
-def download_hdx_resources(dataset_id):
+def download_hdx_resources(dataset_id, country):
     api_url = f"https://data.humdata.org/api/3/action/package_show?id={dataset_id}"
     response = requests.get(api_url)
 
@@ -29,7 +33,7 @@ def download_hdx_resources(dataset_id):
                     extension = f".{format}"
                 if extension and not filename.endswith(extension):
                     filename += extension
-                filename = "/tmp/" + filename
+                filename = "tmp/" + country + "/" + filename
                 # Download the file
                 r = requests.get(url, stream=True)
                 if r.status_code == 200:
@@ -47,7 +51,8 @@ def download_hdx_resources(dataset_id):
 
 
 def lambda_handler(event, context):
-    download_hdx_resources(dataset_id)
+    for country in datasets:
+        download_hdx_resources(datasets[country], country)
 
     return {
         "statusCode": 200,
