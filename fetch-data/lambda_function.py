@@ -25,7 +25,6 @@ def download_hdx_resources(dataset_id, country):
                 filename = resource.get("name")
                 format = resource.get("format").lower() if resource.get("format") else ""
 
-                # Determine the file extension
                 extension = (
                     mimetypes.guess_extension(resource.get("mimetype")) if resource.get("mimetype") else ""
                 )
@@ -33,7 +32,7 @@ def download_hdx_resources(dataset_id, country):
                     extension = f".{format}"
                 if extension and not filename.endswith(extension):
                     filename += extension
-                filename = "tmp/" + country + "/" + filename
+                filename = "/tmp/" + country + "/" + filename
                 # Download the file
                 r = requests.get(url, stream=True)
                 if r.status_code == 200:
