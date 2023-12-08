@@ -29,14 +29,14 @@ def download_hdx_resources(dataset_id):
                     extension = f".{format}"
                 if extension and not filename.endswith(extension):
                     filename += extension
-
+                filename = "/tmp/" + filename
                 # Download the file
                 r = requests.get(url, stream=True)
                 if r.status_code == 200:
                     with open(filename, "wb") as f:
                         for chunk in r.iter_content(chunk_size=1024):
                             if chunk:
-                                s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, "/tmp/" + filename)
+                                s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, filename)
                     print(f"Downloaded {filename}")
                 else:
                     print(f"Failed to download {filename}")
