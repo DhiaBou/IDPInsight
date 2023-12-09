@@ -6,6 +6,7 @@ from hdx.data.dataset import Dataset
 from hdx.utilities.downloader import Download
 from hdx.utilities.easy_logging import setup_logging
 
+
 s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")
 
@@ -47,9 +48,13 @@ def download_all_resources_for_dataset(dataset_id, country_name):
     resources = Dataset.get_all_resources([dataset])
     path = "/tmp/" + country_name + "/"
     for resource in resources:
-        url, path = resource.download(path)
-        url_components = path.split("/")
-        file_name = url_components[len(url_components) - 1]
+        downloader = Download(user_agent="WFP_Project")
+        download_url = resource.data.get("url", None)
+        file_name = resource.data.get("name", None)
+
+        # url, path = resource.download(path)
+        # url_components = path.split("/")
+        downloader.download_file(url=download_url, file_name=file_name, folder=pat)
         s3.Object(s3_bucket, file_name).upload_file(path)
 
-        print("Resource URL %s downloaded to %s\n" % (url, path))
+        print("Resource URL %s downloaded to %s\n" % (download_url, path))
