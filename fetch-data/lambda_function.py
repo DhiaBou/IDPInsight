@@ -54,7 +54,7 @@ def download_all_resources_for_dataset(dataset_id, country_name):
 
         # url, path = resource.download(path)
         # url_components = path.split("/")
-        downloader.download_file(url=download_url, file_name=file_name, folder=pat)
+        downloader.download_file(url=download_url, file_name=file_name, folder=path)
         s3.Object(s3_bucket, file_name).upload_file(path)
 
         print("Resource URL %s downloaded to %s\n" % (download_url, path))
