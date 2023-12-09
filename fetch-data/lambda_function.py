@@ -1,6 +1,7 @@
 import io
 import boto3
 import hdx
+import requests
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.utilities.downloader import Download
@@ -48,13 +49,18 @@ def download_all_resources_for_dataset(dataset_id, country_name):
     resources = Dataset.get_all_resources([dataset])
     path = "/tmp/" + country_name + "/"
     for resource in resources:
-        downloader = Download(user_agent="WFP_Project")
         download_url = resource.data.get("url", None)
         file_name = resource.data.get("name", None)
 
+        response = requests.get(download_url)
+        if response.status_code == 200:
+            with open(path + file_name, "wb") as file:
+                file.write(response.content)
+            s3.Object(s3_bucket, file_name).upload_file(path + file_name)
+
         # url, path = resource.download(path)
         # url_components = path.split("/")
-        downloader.download_file(url=download_url, file_name=file_name, folder=path)
-        s3.Object(s3_bucket, file_name).upload_file(path)
+        # downloader.download_file(url=download_url, file_name=file_name, folder=path)
+        # s3.Object(s3_bucket, file_name).upload_file(path)
 
         # print("Resource URL %s downloaded to %s\n" % (download_url, path))
