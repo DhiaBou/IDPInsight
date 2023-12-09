@@ -11,7 +11,7 @@ from hdx.utilities.easy_logging import setup_logging
 
 s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")
-
+s3_resource = boto3.resource("s3")
 
 # def stream_path(self, path: str, errormsg: str):
 #    try:
@@ -56,7 +56,7 @@ def download_all_resources_for_dataset(dataset_id, country_name):
 
         response = requests.get(download_url)
         if response.status_code == 200:
-            s3.Object(s3_bucket, file_path).put(Body=response.content)
+            s3_resource.Object(s3_bucket, file_path).put(Body=response.content)
 
         # url, path = resource.download(path)
         # url_components = path.split("/")
