@@ -52,6 +52,14 @@ def download_all_resources_for_dataset(dataset_id, country_name):
     for resource in resources:
         download_url = resource.data.get("url", None)
         file_name = resource.data.get("name", None)
+        file_type = resource.get_file_type()
+        file_extension = "." + file_type
+
+        # Check if file type is contained in the name
+        # If not the case, then add it
+        if not file_extension in file_name:
+            file_name = file_name + file_extension
+
         file_path = os.path.join(path, file_name)
 
         response = requests.get(download_url)
