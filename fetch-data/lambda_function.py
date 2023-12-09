@@ -10,17 +10,17 @@ s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")
 
 
-def stream_path(self, path: str, errormsg: str):
-    try:
-        for chunk in self.response.iter_content(chunk_size=10240):
-            if chunk:
-                s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, path)
-        return path
-    except Exception:
-        pass
+# def stream_path(self, path: str, errormsg: str):
+#    try:
+#        for chunk in self.response.iter_content(chunk_size=10240):
+#            if chunk:
+#                s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, path)
+#        return path
+#    except Exception:
+#        pass
 
 
-hdx.utilities.downloader.Download.stream_path = stream_path
+# hdx.utilities.downloader.Download.stream_path = stream_path
 
 
 def lambda_handler(event, context):
@@ -48,4 +48,8 @@ def download_all_resources_for_dataset(dataset_id, country_name):
     path = "/tmp/" + country_name + "/"
     for resource in resources:
         url, path = resource.download(path)
+        url_components = path.split("/")
+        file_name = url_components[len(url_components) - 1]
+        s3.Object(s3_bucket, file_name).upload_file(path)
+
         print("Resource URL %s downloaded to %s\n" % (url, path))
