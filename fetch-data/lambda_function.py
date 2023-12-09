@@ -2,6 +2,7 @@ import io
 import boto3
 import hdx
 import requests
+import os
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.utilities.downloader import Download
@@ -51,12 +52,11 @@ def download_all_resources_for_dataset(dataset_id, country_name):
     for resource in resources:
         download_url = resource.data.get("url", None)
         file_name = resource.data.get("name", None)
+        file_path = os.path.join(path, file_name)
 
         response = requests.get(download_url)
         if response.status_code == 200:
-            with open(path + file_name, "wb") as file:
-                file.write(response.content)
-            s3.Object(s3_bucket, file_name).upload_file(path + file_name)
+            s3.Object(s3_bucket, file_path).put(Body=response.content)
 
         # url, path = resource.download(path)
         # url_components = path.split("/")
