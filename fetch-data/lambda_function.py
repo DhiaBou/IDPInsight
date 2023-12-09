@@ -30,6 +30,7 @@ def lambda_handler(event, context):
     setup_logging()
     Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     download_data_south_america()
+    download_data_africa()
 
     return {
         "statusCode": 200,
