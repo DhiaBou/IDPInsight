@@ -1,6 +1,4 @@
 hdx-python-api==6.1.4
 boto3
 io
-pandas
-regex
 requests

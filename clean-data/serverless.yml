@@ -1,0 +1,32 @@
+service: devgurus-clean-data-service
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: dev
+  region: eu-west-1
+  deploymentBucket:
+    name: devgurus-clean-data-deployment-bucket
+
+
+plugins:
+  - serverless-python-requirements
+
+package:
+  individually: true
+
+functions:
+  theLambda:
+    name: devgurus-clean-data
+    handler: lambda_function.lambda_handler
+    description: devgurus-clean-data
+    timeout: 5 # seconds
+    memorySize: 1000 # mb
+    role: arn:aws:iam::122662047093:role/AWSLambda_FullAccess_Role # Replace [AWS_ACCOUNT_ID] with your actual AWS account ID
+
+    package:
+      patterns:
+        - "!node_modules/**"
+        - "!yarn.lock"
+        - "!package-lock.json"
+        - "!package.json"
