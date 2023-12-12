@@ -1,0 +1,17 @@
+.navbar-container {
+    height: 100%;
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+  
+    background-color: darkblue;
+    
+    position: relative;
+}
+
+.p {
+    font-style: italic;
+    text-align: center;
+    color: white;
+}
