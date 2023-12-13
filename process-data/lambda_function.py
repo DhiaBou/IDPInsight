@@ -1,5 +1,4 @@
 import boto3
-import openpyxl
 import pandas as pd
 import io
 
@@ -9,6 +8,7 @@ s3 = boto3.client('s3')
 def lambda_handler(event, context):
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     file_key = event['Records'][0]['s3']['object']['key']
+    print(event)
 
     if file_key.endswith('.xlsx'):
         process_xlsx(bucket_name, file_key)
@@ -18,8 +18,6 @@ def lambda_handler(event, context):
 
 def process_xlsx(bucket_name, file_key):
     obj = s3.get_object(Bucket=bucket_name, Key=file_key)
-
-    df = pd.DataFrame()
 
     if file_key.startswith('/tmp/Sudan/DTM Sudan - Weekly displacement snapshot 11.xlsx'):
         df = pd.read_excel(io.BytesIO(obj['Body'].read()), sheet_name='MASTER LIST (ADMIN1)', header=1)
