@@ -9,6 +9,7 @@ s3 = boto3.client('s3')
 def lambda_handler(event, context):
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     file_key = event['Records'][0]['s3']['object']['key']
+    print(event)
 
     if file_key.endswith('.xlsx'):
         process_xlsx(bucket_name, file_key)
