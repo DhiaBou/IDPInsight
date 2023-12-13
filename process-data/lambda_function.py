@@ -29,7 +29,7 @@ def process_xlsx(bucket_name, file_key):
         df = df.rename(columns={'HHs': 'Households'})
         state_origin_columns = df.columns[4:-2]
         df[state_origin_columns] = df[state_origin_columns].fillna(0)
-        write_file(df, file_key)
+        write_file(df, '/tmp/Sudan/DTM_Sudan_Weekly_displacement_snapshot_11_processed.csv')
 
     elif file_key.startswith('/tmp/Colombia/Colombia_Desplazamientos_Jan2008_oct2023 .xlsx'):
         df = pd.read_excel(io.BytesIO(obj['Body'].read()), header=5)
@@ -38,7 +38,7 @@ def process_xlsx(bucket_name, file_key):
         df.rename(columns={'Victims': 'IDPs'}, inplace=True)
         df = df[df['IDPs'] != 0]
 
-        write_file(df, file_key)
+        write_file(df, '/tmp/Colombia/Colombia_IDP_Jan2008_oct2023_processed.csv')
 
 
 def write_file(df, file_key):
