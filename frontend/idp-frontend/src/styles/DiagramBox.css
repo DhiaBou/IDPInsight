@@ -3,7 +3,7 @@
     flex-direction: column;
     min-height: 100%;
     min-width: 90%;
-    background-color: lightskyblue;
+    background-color: #87CEEB; /* Sky Blue */
 
     overflow: scroll;
   }
