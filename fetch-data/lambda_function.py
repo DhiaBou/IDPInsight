@@ -29,8 +29,8 @@ s3_resource = boto3.resource("s3")
 def lambda_handler(event, context):
     setup_logging()
     Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
-    download_data_south_america()
-    download_data_africa()
+
+    fetch_all_relevant_datasets()
 
     return {
         "statusCode": 200,
@@ -38,12 +38,65 @@ def lambda_handler(event, context):
     }
 
 
-def download_data_south_america():
-    download_all_resources_for_dataset("ccb9dfdf-b432-4d50-bd19-ac5616a0447b", "Colombia")
+def fetch_all_relevant_datasets():
+    african_iso3 = [
+        "DZA",
+        "AGO",
+        "BEN",
+        "BWA",
+        "BFA",
+        "BDI",
+        "CPV",
+        "CMR",
+        "CAF",
+        "TCD",
+        "COM",
+        "COD",
+        "COG",
+        "DJI",
+        "EGY",
+        "GNQ",
+        "ERI",
+        "SWZ",
+        "ETH",
+        "GAB",
+        "GMB",
+        "GHA",
+        "GIN",
+        "GNB",
+        "CIV",
+        "KEN",
+        "LSO",
+        "LBR",
+        "LBY",
+        "MDG",
+        "MWI",
+        "MLI",
+        "MRT",
+        "MUS",
+        "MAR",
+        "MOZ",
+        "NAM",
+        "NER",
+        "NGA",
+        "RWA",
+        "STP",
+        "SEN",
+        "SYC",
+        "SLE",
+        "SOM",
+        "ZAF",
+        "SSD",
+        "SDN",
+        "TZA",
+        "TGO",
+        "TUN",
+        "UGA",
+        "ZMB",
+        "ZWE",
+    ]
 
-
-def download_data_africa():
-    download_all_resources_for_dataset("319dd40f-c0f8-4f6d-9a8e-9acf31007dd5", "Sudan")
+    relevant_datasets = []
 
 
 def download_all_resources_for_dataset(dataset_id, country_name):
