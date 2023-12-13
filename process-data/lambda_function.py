@@ -32,7 +32,7 @@ def process_xlsx(bucket_name, file_key):
         write_file(df, file_key)
 
     elif file_key.startswith('/tmp/Colombia/Colombia_Desplazamientos_Jan2008_oct2023 .xlsx'):
-        df = pd.read_excel(io.BytesIO(obj['Body'].read()), header=1)
+        df = pd.read_excel(io.BytesIO(obj['Body'].read()), header=5)
         df = df.reset_index(drop=True)
         df = df.drop(['age', 'gender', 'Category', 'ethnic_group', 'ID'], axis=1)
         df.rename(columns={'Victims': 'IDPs'}, inplace=True)
