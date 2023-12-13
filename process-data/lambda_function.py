@@ -21,24 +21,38 @@ def lambda_handler(event, context):
 def process_xlsx(bucket_name, file_key):
     # Read the xlsx file
     obj = s3.get_object(Bucket=bucket_name, Key=file_key)
-    wb = openpyxl.load_workbook(io.BytesIO(obj['Body'].read()))
+    df = pd.read_excel(io.BytesIO(obj['Body'].read()), sheet_name='MASTER LIST (ADMIN1)', header=1)
 
-    # Add a new sheet with '1' in it
-    new_sheet = wb.create_sheet(title="NewSheet")
-    new_sheet['A1'] = 1
+    if file_key.startswith('Sudan'):
+        # Read the first sheet into a DataFrame using pandas
+        # Note: No need to use openpyxl here
+        df = pd.read_excel(io.BytesIO(obj['Body'].read()), sheet_name='MASTER LIST (ADMIN1)', header=1)
+
+
+        # Perform additional processing with df
+        # drop line with comments
+        df = df.drop(0)
+        df = df.reset_index(drop=True)
+
+        # rename unclear features
+        df = df.rename(columns={'HHs': 'Households'})
+
+        # replace nan values to 0
+        state_origin_columns = df.columns[4:-2]  # Selecting columns between 'HHs' and 'SUDANESE'
+        df[state_origin_columns] = df[state_origin_columns].fillna(0)
 
     # Write to new bucket
-    output = io.BytesIO()
-    wb.save(output)
+    output = io.StringIO()
+    df.to_csv(output, index=False)
     s3.put_object(Bucket='devgurus-processed-data', Key=file_key, Body=output.getvalue())
 
 
 def process_csv(bucket_name, file_key):
     # Read the csv file
     obj = s3.get_object(Bucket=bucket_name, Key=file_key)
-    df = pd.read_csv(io.BytesIO(obj['Body'].read()))
+    new_df = pd.read_csv(io.BytesIO(obj['Body'].read()))
 
-    new_df = pd.concat([df, df])
+
 
     # new_df = rename_columns(df=df)
     # new_df.dropna(inplace=True)  # drop nul values
