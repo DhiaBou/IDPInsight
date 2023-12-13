@@ -21,9 +21,10 @@ def lambda_handler(event, context):
 def process_xlsx(bucket_name, file_key):
     # Read the xlsx file
     obj = s3.get_object(Bucket=bucket_name, Key=file_key)
-    df = pd.read_excel(io.BytesIO(obj['Body'].read()), sheet_name='MASTER LIST (ADMIN1)', header=1)
 
-    if file_key.startswith('Sudan'):
+    df = pd.DataFrame()
+
+    if file_key.startswith('/tmp/Sudan/DTM Sudan - Weekly displacement snapshot 11.xlsx'):
         # Read the first sheet into a DataFrame using pandas
         # Note: No need to use openpyxl here
         df = pd.read_excel(io.BytesIO(obj['Body'].read()), sheet_name='MASTER LIST (ADMIN1)', header=1)
@@ -40,10 +41,19 @@ def process_xlsx(bucket_name, file_key):
         # replace nan values to 0
         state_origin_columns = df.columns[4:-2]  # Selecting columns between 'HHs' and 'SUDANESE'
         df[state_origin_columns] = df[state_origin_columns].fillna(0)
+    elif file_key.startswith('/tmp/Colombia/Colombia_Desplazamientos_Jan2008_oct2023 .xlsx'):
+        df = pd.read_excel(io.BytesIO(obj['Body'].read()), header=1)
+        df = df.reset_index(drop=True)
+        df = df.drop(['age', 'gender', 'Category', 'ethnic_group', 'ID'], axis=1)
+
+        # Rename the column 'Victims' to 'IDPs'
+        df.rename(columns={'Victims': 'IDPs'}, inplace=True)
+
+        df = df[df['IDPs'] != 0]
 
     # Write to new bucket
     output = io.StringIO()
-    df.to_csv(output, index=False)
+    df.to_csv(output, encoding='utf-8', index=False)
     s3.put_object(Bucket='devgurus-processed-data', Key=file_key, Body=output.getvalue())
 
 
