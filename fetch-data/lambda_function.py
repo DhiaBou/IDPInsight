@@ -13,24 +13,18 @@ s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")
 s3_resource = boto3.resource("s3")
 
-# def stream_path(self, path: str, errormsg: str):
-#    try:
-#        for chunk in self.response.iter_content(chunk_size=10240):
-#            if chunk:
-#                s3.upload_fileobj(io.BytesIO(chunk), s3_bucket, path)
-#        return path
-#    except Exception:
-#        pass
-
-
-# hdx.utilities.downloader.Download.stream_path = stream_path
-
 
 def lambda_handler(event, context):
     setup_logging()
     Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
 
-    fetch_all_relevant_datasets()
+    # Extract location (iso3) from the event
+    locations = event["locations"]
+
+    # Extract organization from the event
+    organization = event["organization"]
+
+    fetch_datasets(locations, organization)
 
     return {
         "statusCode": 200,
@@ -38,71 +32,42 @@ def lambda_handler(event, context):
     }
 
 
-def fetch_all_relevant_datasets():
-    african_iso3 = [
-        "DZA",
-        "AGO",
-        "BEN",
-        "BWA",
-        "BFA",
-        "BDI",
-        "CPV",
-        "CMR",
-        "CAF",
-        "TCD",
-        "COM",
-        "COD",
-        "COG",
-        "DJI",
-        "EGY",
-        "GNQ",
-        "ERI",
-        "SWZ",
-        "ETH",
-        "GAB",
-        "GMB",
-        "GHA",
-        "GIN",
-        "GNB",
-        "CIV",
-        "KEN",
-        "LSO",
-        "LBR",
-        "LBY",
-        "MDG",
-        "MWI",
-        "MLI",
-        "MRT",
-        "MUS",
-        "MAR",
-        "MOZ",
-        "NAM",
-        "NER",
-        "NGA",
-        "RWA",
-        "STP",
-        "SEN",
-        "SYC",
-        "SLE",
-        "SOM",
-        "ZAF",
-        "SSD",
-        "SDN",
-        "TZA",
-        "TGO",
-        "TUN",
-        "UGA",
-        "ZMB",
-        "ZWE",
-    ]
+def fetch_datasets(locations, organization):
+    # Obtain all datasets by the organization, specified as paramater
+    datasets = Dataset.search_in_hdx(q="internally displaced persons-idp", fq=f"organization:{organization}")
 
-    relevant_datasets = []
+    for dataset in datasets:
+        dataset_id = dataset.get_name_or_id(False)
+        dataset_name = dataset.get_name_or_id(True)
+        dataset_tags = Dataset.get_tags()
+
+        dataset_locations = dataset.get_location_iso3s()
+
+        if "internally displaced persons-idp" in dataset_tags:
+            if "hxl" in dataset_tags:
+                if check_locations(locations, dataset_locations):
+                    download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
 
 
-def download_all_resources_for_dataset(dataset_id, country_name):
+def check_locations(locations, dataset_locations):
+    for dataset_location in dataset_locations:
+        if dataset_location not in locations:
+            return False
+
+    return True
+
+
+def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations):
     dataset = Dataset.read_from_hdx(dataset_id)
     resources = Dataset.get_all_resources([dataset])
-    path = "/tmp/" + country_name + "/"
+
+    # Assuming each dataset is associated with one location
+    # TODO: Consider datasets with multiple locations
+    location = dataset_locations[0]
+
+    # Data stored under /tmp/country/dataset_name
+    path = "/tmp/" + location + "/" + dataset_name
+
     for resource in resources:
         download_url = resource.data.get("url", None)
         file_name = resource.data.get("name", None)
@@ -119,6 +84,3 @@ def download_all_resources_for_dataset(dataset_id, country_name):
         response = requests.get(download_url)
         if response.status_code == 200:
             s3_resource.Object(s3_bucket, file_path).put(Body=response.content)
-
-        # url, path = resource.download(path)
-        # print("Resource URL %s downloaded to %s\n" % (download_url, path))
