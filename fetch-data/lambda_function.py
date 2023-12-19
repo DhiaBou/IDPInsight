@@ -39,7 +39,7 @@ def fetch_datasets(locations, organization):
     for dataset in datasets:
         dataset_id = dataset.get_name_or_id(False)
         dataset_name = dataset.get_name_or_id(True)
-        dataset_tags = Dataset.get_tags()
+        dataset_tags = dataset.get_tags()
 
         dataset_locations = dataset.get_location_iso3s()
 
