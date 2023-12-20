@@ -11,7 +11,6 @@ def lambda_handler(event, context):
     # Get bucket name and file key from the event
     bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
     file_key = event["Records"][0]["s3"]["object"]["key"]
-    print(event)
 
     # Determine file type
     if file_key.endswith(".xlsx"):

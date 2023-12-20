@@ -16,14 +16,12 @@ s3_resource = boto3.resource("s3")
 
 def lambda_handler(event, context):
     setup_logging()
-    Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
-
     # Extract location (iso3) from the event
     locations = event["locations"]
-
     # Extract organization from the event
     organization = event["organization"]
 
+    Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     fetch_datasets(locations, organization)
 
     return {
@@ -66,7 +64,7 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
     location = dataset_locations[0]
 
     # Data stored under /tmp/country/dataset_name
-    path = "/tmp/" + location + "/" + dataset_name
+    path = "tmp/" + location + "/" + dataset_name
 
     for resource in resources:
         download_url = resource.data.get("url", None)
