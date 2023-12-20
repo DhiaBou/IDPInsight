@@ -1,9 +1,3 @@
-pandas
-
-openpyxl
 boto3
-io
-tempfile
+pandas
 regex
-hdx-python-api==6.1.4
-
