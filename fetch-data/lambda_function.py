@@ -1,13 +1,10 @@
-import io
-import boto3
-import hdx
-import requests
 import os
+
+import boto3
+import requests
 from hdx.api.configuration import Configuration, ConfigurationError
 from hdx.data.dataset import Dataset
-from hdx.utilities.downloader import Download
 from hdx.utilities.easy_logging import setup_logging
-
 
 s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")

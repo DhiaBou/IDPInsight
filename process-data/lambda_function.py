@@ -1,14 +1,15 @@
-import os
+import io
 
 import boto3
 import pandas as pd
-import io
+
 from hxl_parser import clean_one_sheet
 
 s3 = boto3.client("s3")
 
 
 def lambda_handler(event, context):
+    print(event)
     # Get bucket name and file key from the event
     bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
     file_key = event["Records"][0]["s3"]["object"]["key"]
