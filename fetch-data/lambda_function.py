@@ -3,7 +3,7 @@ import boto3
 import hdx
 import requests
 import os
-from hdx.api.configuration import Configuration
+from hdx.api.configuration import Configuration, ConfigurationError
 from hdx.data.dataset import Dataset
 from hdx.utilities.downloader import Download
 from hdx.utilities.easy_logging import setup_logging
@@ -20,8 +20,10 @@ def lambda_handler(event, context):
     locations = event["locations"]
     # Extract organization from the event
     organization = event["organization"]
-
-    Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
+    try:
+        Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
+    except ConfigurationError:
+        pass
     fetch_datasets(locations, organization)
 
     return {
