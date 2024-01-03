@@ -3,11 +3,12 @@ name: Deploy Python Lambda
 on:
   push:
     branches:
-      - main
-
+      - '*'
 jobs:
 
   deploy-fetch-data:
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.modified, 'fetch-data/') }}
+
     name: deploy-fetch-data
     runs-on: ubuntu-latest
     env:
@@ -73,7 +74,7 @@ jobs:
 
   deploy-process-data-lambda:
     needs: deploy-fetch-data
-
+    if: ${{ always() }}
     name: deploy-process-data-lambda
     runs-on: ubuntu-latest
     env:

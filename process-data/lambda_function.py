@@ -2,6 +2,7 @@ import io
 
 import boto3
 import pandas as pd
+import urllib.parse
 
 from hxl_parser import clean_one_sheet
 
@@ -12,7 +13,7 @@ def lambda_handler(event, context):
     print(event)
     # Get bucket name and file key from the event
     bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
-    file_key = event["Records"][0]["s3"]["object"]["key"]
+    file_key = urllib.parse.unquote_plus(event["Records"][0]["s3"]["object"]["key"])
 
     # Determine file type
     process_xlsx(bucket_name, file_key)
