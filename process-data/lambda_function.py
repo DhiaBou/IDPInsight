@@ -22,7 +22,6 @@ def lambda_handler(event, context):
 def process_xlsx(bucket_name, file_key):
     # Read the xlsx file
     obj = s3.get_object(Bucket=bucket_name, Key=file_key)
-
     excel_data = io.BytesIO(obj["Body"].read())
     xlsx_file = pd.ExcelFile(excel_data)
     processed_data_list = []
@@ -30,7 +29,7 @@ def process_xlsx(bucket_name, file_key):
     for sheet_name in xlsx_file.sheet_names:
         df = pd.read_excel(xlsx_file, sheet_name=sheet_name, header=None)
         clean_one_sheet(processed_data_list, df)
-    i = 0
+    file_counter = 0
     for df in processed_data_list:
         new_df = rename_columns(df=df)
         new_df.dropna(inplace=True)  # drop nul values
@@ -39,8 +38,8 @@ def process_xlsx(bucket_name, file_key):
         # Write to new bucket
         output = io.StringIO()
         new_df.to_csv(output, index=False)
-        new_filename = file_key.replace(".xlsx", str(str(i) + ".csv"))
-        i += 1
+        new_filename = file_key.replace(".xlsx", f"_processed_ + {str(file_counter)} + .csv")
+        file_counter += 1
         s3.put_object(Bucket="devgurus-processed-data", Key=new_filename, Body=output.getvalue())
 
 
