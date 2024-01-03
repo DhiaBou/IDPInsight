@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import boto3
 import requests
@@ -75,7 +76,14 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
         # If not the case, then add it
         if not file_extension in file_name:
             file_name = file_name + file_extension
-
+        if "last_modified" in resource.data:
+            try:
+                formatted_date = datetime.strptime(
+                    resource.data["last_modified"], "%Y-%m-%dT%H:%M:%S.%f"
+                ).strftime("%Y-%m-%dT%H:%M")
+                file_name = formatted_date + "__" + file_name
+            except ValueError:
+                pass
         file_path = os.path.join(path, file_name)
 
         response = requests.get(download_url)

@@ -38,7 +38,7 @@ def process_xlsx(bucket_name, file_key):
         # Write to new bucket
         output = io.StringIO()
         new_df.to_csv(output, index=False)
-        new_filename = file_key.replace(".xlsx", f"_processed_ + {str(file_counter)} + .csv")
+        new_filename = file_key.replace(".xlsx", f"_processed_{str(file_counter)}.csv")
         file_counter += 1
         s3.put_object(Bucket="devgurus-processed-data", Key=new_filename, Body=output.getvalue())
 
