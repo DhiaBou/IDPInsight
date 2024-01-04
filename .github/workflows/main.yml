@@ -4,28 +4,37 @@ on:
   push:
     branches:
       - '*'
+
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout
+    - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Build
-      run: |
-        cd frontend/idp-frontend
-        npm install
-        npm run build
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'  # specify your Node.js version
 
-    - name: Deploy
-      uses: jakejarvis/s3-sync-action@master
+    - name: Install Dependencies
+      run: npm install
+      working-directory: ./frontend/idp-frontend
+
+    - name: Build
+      run: npm run build
+      working-directory: ./frontend/idp-frontend
+
+    - name: Deploy to AWS S3
+      uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: --acl public-read --follow-symlinks --delete
       env:
-        AWS_S3_BUCKET: 'devgurus-frontend-deployment-bucket'
+        AWS_S3_BUCKET: devgurus-frontend-deployment-bucket
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: 'eu-west-1'  # replace with your preferred region
+        AWS_REGION: 'eu-west-1'  # e.g., us-west-2
         SOURCE_DIR: './frontend/idp-frontend/build'
 
 
