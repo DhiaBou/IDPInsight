@@ -35,7 +35,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: 'eu-west-1'  # e.g., us-west-2
-        SOURCE_DIR: './frontend/idp-frontend/build'
+        SOURCE_DIR: './frontend/idp-frontend/dist'
 
 
   deploy-fetch-data:
