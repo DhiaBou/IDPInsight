@@ -14,7 +14,7 @@ function DefaultView(props: SideMenuProps) {
 
             <div className="bottom-container">
                 <SideMenu countryNames={props.countryNames}/>
-                <DiagramBox/>
+                <DiagramBox countryName="sudan"/>
             </div>
         </div>
         
