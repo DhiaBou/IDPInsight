@@ -4,6 +4,8 @@
 /client/node_modules/
 **/node_modules/
 **/venv/
+**/poetry.lock/
+**/poetry.env/
 
 /build/
 .npm

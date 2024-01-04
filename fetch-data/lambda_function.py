@@ -1,14 +1,11 @@
-import io
-import boto3
-import hdx
-from hdx.api.configuration import Configuration
-from hdx.data.dataset import Dataset
-from hdx.utilities.downloader import Download
-from hdx.utilities.easy_logging import setup_logging
-from hdx.api.locations import Locations
-
-import requests
 import os
+from datetime import datetime
+
+import boto3
+import requests
+from hdx.api.configuration import Configuration, ConfigurationError
+from hdx.data.dataset import Dataset
+from hdx.utilities.easy_logging import setup_logging
 
 s3_bucket = "devgurus-raw-data"
 s3 = boto3.client("s3")
@@ -17,8 +14,15 @@ s3_resource = boto3.resource("s3")
 
 def lambda_handler(event, context):
     setup_logging()
-    Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
-    download_datasets()
+    # Extract location (iso3) from the event
+    locations = event["locations"]
+    # Extract organization from the event
+    organization = event["organization"]
+    try:
+        Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
+    except ConfigurationError:
+        pass
+    fetch_datasets(locations, organization)
 
     return {
         "statusCode": 200,
@@ -26,64 +30,62 @@ def lambda_handler(event, context):
     }
 
 
-def download_datasets():
-    """
-    Choose datasets with tags 'internally displaced persons-idp' and 'hxl'
-    Download only resources (excel files) of this datasets
-    """
-    datasets = Dataset.search_in_hdx(
-        q="internally displaced persons-idp", fq=f"organization:{'international-organization-for-migration'}"
-    )
+def fetch_datasets(locations, organization):
+    # Obtain all datasets by the organization, specified as paramater
+    datasets = Dataset.search_in_hdx(q="internally displaced persons-idp", fq=f"organization:{organization}")
 
     for dataset in datasets:
-        tags = Dataset.get_tags(dataset)
-        if "internally displaced persons-idp" in tags:
-            if "hxl" in tags:
-                download_all_resources_for_dataset(dataset)
+        dataset_id = dataset.get_name_or_id(False)
+        dataset_name = dataset.get_name_or_id(True)
+        dataset_tags = dataset.get_tags()
+
+        dataset_locations = dataset.get_location_iso3s()
+
+        if "internally displaced persons-idp" in dataset_tags:
+            if "hxl" in dataset_tags:
+                if check_locations(locations, dataset_locations):
+                    download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
 
 
-def download_all_resources_for_dataset(dataset):
-    try:
-        # Obtain dataset id and name
-        dataset_id = dataset.data.get("id")
-        dataset_name = dataset.data.get("name")
+def check_locations(locations, dataset_locations):
+    for dataset_location in dataset_locations:
+        if dataset_location not in locations:
+            return False
 
-        # Determine location code and thus country
-        location_code = dataset.get_location_iso3s()
-        location = Locations.get_location_from_HDX_code(location_code[0])
-
-        # Create path to country and dataset
-        path_country = os.path.join("/", "temp", "/", location)
-        path_dataset = os.path.join(path_country, dataset_name)
-
-        # Download all resources for this dataset
-        resources = Dataset.get_all_resources([dataset])
-
-        for resource in resources:
-            download_url = resource.data.get("url", None)
-
-            file_name = resource.data.get("name", None)
-            file_type = resource.get_file_type()
-            file_extension = "." + file_type
-
-            # Check if file type is contained in the name
-            # If not the case, then add it
-            if not file_extension in file_name:
-                file_name = file_name + file_extension
-
-            response = requests.get(download_url)
-            path_file = os.path.join(path_dataset, file_name)
-            if response.status_code == 200:
-                s3_resource.Object(s3_bucket, path_file).put(Body=response.content)
-
-    except requests.exceptions.HTTPError as http_error:
-        print(f"HTTP Error occurred: {http_error}")
-        pass
+    return True
 
 
-# def download_data_south_america():
-#     download_all_resources_for_dataset("ccb9dfdf-b432-4d50-bd19-ac5616a0447b", "Colombia")
+def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations):
+    dataset = Dataset.read_from_hdx(dataset_id)
+    resources = Dataset.get_all_resources([dataset])
 
+    # Assuming each dataset is associated with one location
+    # TODO: Consider datasets with multiple locations
+    location = dataset_locations[0]
 
-# def download_data_africa():
-#     download_all_resources_for_dataset("319dd40f-c0f8-4f6d-9a8e-9acf31007dd5", "Sudan")
+    # Data stored under /tmp/country/dataset_name
+    path = "tmp/" + location + "/" + dataset_name
+
+    for resource in resources:
+        download_url = resource.data.get("url", None)
+        file_name = resource.data.get("name", None)
+        file_type = resource.get_file_type()
+        file_extension = "." + file_type
+
+        # Check if file type is contained in the name
+        # If not the case, then add it
+        if not file_extension in file_name:
+            file_name = file_name + file_extension
+        if "last_modified" in resource.data:
+            try:
+                formatted_date = datetime.strptime(
+                    resource.data["last_modified"], "%Y-%m-%dT%H:%M:%S.%f"
+                ).strftime("%Y-%m-%dT%H:%M")
+                file_name = formatted_date + "__" + file_name
+            except ValueError:
+                pass
+        file_path = os.path.join(path, file_name)
+
+        response = requests.get(download_url)
+        if response.status_code == 200:
+            s3_resource.Object(s3_bucket, file_path).put(Body=response.content)
