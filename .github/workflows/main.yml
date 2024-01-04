@@ -5,8 +5,33 @@ on:
     branches:
       - '*'
 jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        cd frontend/idp-frontend
+        npm install
+        npm run build
+
+    - name: Deploy
+      uses: jakejarvis/s3-sync-action@master
+      with:
+        args: --acl public-read --follow-symlinks --delete
+      env:
+        AWS_S3_BUCKET: 'devgurus-frontend-deployment-bucket'
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: 'eu-west-1'  # replace with your preferred region
+        SOURCE_DIR: './frontend/idp-frontend/build'
+
 
   deploy-fetch-data:
+    needs: deploy-frontend
+
     name: deploy-fetch-data
     runs-on: ubuntu-latest
     env:
