@@ -13,18 +13,15 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'  # specify your Node.js version
-
     - name: Install Dependencies
-      run: npm install
-      working-directory: ./frontend/idp-frontend
+      run: |
+        cd ./frontend/idp-frontend
+        npm install
 
     - name: Build
-      run: npm run build
-      working-directory: ./frontend/idp-frontend
+      run: |
+        cd ./frontend/idp-frontend
+        npm run build # or use 'vite build' if you use Vite for building
 
     - name: Deploy to AWS S3
       uses: jakejarvis/s3-sync-action@v0.5.1
@@ -34,8 +31,7 @@ jobs:
         AWS_S3_BUCKET: devgurus-frontend-deployment-bucket
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: 'eu-west-1'  # e.g., us-west-2
-        SOURCE_DIR: './frontend/idp-frontend/dist'
+        SOURCE_DIR: './frontend/idp-frontend/dist' # Adjust if your build output directory is different
 
 
   deploy-fetch-data:
