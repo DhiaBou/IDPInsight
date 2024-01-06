@@ -96,6 +96,7 @@ def write_resource_file(path, resource):
 
 
 def write_dataset_metadata(dataset_metadata, path):
+    dataset_metadata_json = json.dumps(dataset_metadata)
     dataset_metadata_filename = "metadata.json"
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
-    S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata)
+    S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata_json)
