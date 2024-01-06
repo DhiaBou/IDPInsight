@@ -30,11 +30,13 @@ def process_xlsx(bucket_name, file_key):
         df = pd.read_excel(xlsx_file, sheet_name=sheet_name, header=None)
         clean_one_sheet(processed_data_list, df)
     file_counter = 0
+    logs = ""
     for df in processed_data_list:
-        new_df = rename_columns(df=df)
-        new_df.dropna(inplace=True)  # drop nul values
-        new_df = remove_rows_where_idps_zero(df=new_df)  # Remove rows where 'Affected IDPs Individuals' is 0
-
+        logs += f"Processing file: {file_key}, Sheet: {file_counter}\n"
+        new_df, logs = rename_columns(df=df, logs=logs)
+        new_df, logs = drop_null_values(df=new_df, logs=logs)  # drop nul values
+        new_df, logs = remove_rows_where_idps_zero(df=new_df,
+                                                   logs=logs)  # Remove rows where 'Affected IDPs Individuals' is 0
         # Write to new bucket
         output = io.StringIO()
         new_df.to_csv(output, index=False)
@@ -42,8 +44,22 @@ def process_xlsx(bucket_name, file_key):
         file_counter += 1
         s3.put_object(Bucket="devgurus-processed-data", Key=new_filename, Body=output.getvalue())
 
+    # Write logs to StringIO and upload to S3
+    log_file = io.StringIO(logs)
+    log_filename = file_key.replace(".xlsx", "_logs.txt")
+    s3.put_object(Bucket="devgurus-processed-data", Key=log_filename, Body=log_file.getvalue())
 
-def rename_columns(df):
+
+def drop_null_values(df, logs):
+    null_rows = df[df.isnull().any(axis=1)]
+
+    logs += f"Rows dropped due to null values:\n{null_rows}\n"
+
+    df.dropna(inplace=True)
+    return df, logs
+
+
+def rename_columns(df, logs):
     new_column_names = {
         "affected+idps+ind": "Affected IDPs Individual Count",
         "adm1+name": "Administrative Level 1 Name",
@@ -61,13 +77,23 @@ def rename_columns(df):
         "adm1+origin+name": "Origin Administrative Level 1 Name",
     }
 
+    for old_name, new_name in new_column_names.items():
+        if old_name in df.columns:
+            # Log the old and new column names
+            logs += f"Renaming column '{old_name}' to '{new_name}'\n"
+
     # Rename the columns that exist
     df.rename(columns={k: v for k, v in new_column_names.items() if k in df.columns}, inplace=True)
 
-    return df
+    return df, logs
 
 
-def remove_rows_where_idps_zero(df):
+def remove_rows_where_idps_zero(df, logs):
     if "Affected IDPs Individual Count" in df.columns:
+        zero_idp_rows = df[df["Affected IDPs Individual Count"] == 0]
+
+        logs += f"Rows  dropped where 'Affected IDPs Individual Count' is zero:\n{zero_idp_rows}\n"
+
         df = df[df["Affected IDPs Individual Count"] != 0]
-    return df
+
+    return df, logs
