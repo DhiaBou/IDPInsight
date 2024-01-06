@@ -92,7 +92,8 @@ def write_resource_file(path, resource):
     file_path = os.path.join(path, file_name)
     response = requests.get(download_url)
     if response.status_code == 200:
-        S3_RESOURCE.Object(S3_BUCKET, file_path).put(Body=response.content, Metadata=resource.data)
+        metadata = {key: str(value) for key, value in resource.copy().items()}
+        S3_RESOURCE.Object(S3_BUCKET, file_path).put(Body=response.content, Metadata=metadata)
 
 
 def write_dataset_metadata(dataset_metadata, path):
