@@ -54,7 +54,6 @@ def check_locations(locations, dataset_locations):
 def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations):
     dataset = Dataset.read_from_hdx(dataset_id)
     dataset_metadata = dataset.get_dataset_dict()
-    print(dataset_metadata)
     if dataset_metadata["archived"]:
         logging.info(f"Dataset {dataset.get_name_or_id(True)} is archived, skipping...")
         return
@@ -92,7 +91,11 @@ def write_resource_file(path, resource):
     file_path = os.path.join(path, file_name)
     response = requests.get(download_url)
     if response.status_code == 200:
-        metadata = {key: str(value) for key, value in resource.copy().items()}
+        metadata = {}
+        for key, value in resource.copy().items():
+            if key != "fs_check_info":
+                ascii_value = str(value).encode("utf-8").decode("ascii", "ignore")
+                metadata[key] = ascii_value
         S3_RESOURCE.Object(S3_BUCKET, file_path).put(Body=response.content, Metadata=metadata)
 
 
