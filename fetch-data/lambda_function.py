@@ -91,11 +91,7 @@ def write_resource_file(path, resource):
     file_path = os.path.join(path, file_name)
     response = requests.get(download_url)
     if response.status_code == 200:
-        metadata = {}
-        for key, value in resource.copy().items():
-            if key != "fs_check_info":
-                ascii_value = str(value).encode("utf-8").decode("ascii", "ignore")
-                metadata[key] = ascii_value
+        metadata = {"id": resource.get("id", "unknown")}
         S3_RESOURCE.Object(S3_BUCKET, file_path).put(Body=response.content, Metadata=metadata)
 
 
