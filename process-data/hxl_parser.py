@@ -2,10 +2,19 @@ import tempfile as tf
 import os
 import pandas as pd
 import regex as re
+import json
+
+#generate regex using top level identifiers
+def generate_regex(file_name):
+    suffix = r"(\+.*)*"
+    with open(file_name, 'r') as file:
+        tags = json.load(file)
+    prefix = '({})'.format('|'.join(tags['tags']))
+
+    return prefix + suffix
 
 # Regular expression pattern for matching HXL tags
-hxl_pattern = r"#.*\+"
-
+hxl_pattern = generate_regex("tags.json")
 
 # Function to find indices of columns with HXL tags
 def find_hxl_indices(row):
