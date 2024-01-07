@@ -8,7 +8,7 @@ function DiagramBox(props: CountryButtonProps) {
             <iframe
                 width="960"
                 height="720"
-                src="https://eu-west-1.quicksight.aws.amazon.com/sn/embed/share/accounts/122662047093/dashboards/c192f767-b772-4fe3-a63a-2f418e85c780?directory_alias=nl-wfp">
+            >
             </iframe>
         </div>
         );
