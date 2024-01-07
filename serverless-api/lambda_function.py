@@ -1,57 +1,32 @@
 import json
+import logging
+
 import boto3
+from router import Router
 
-
+RAW_DATA_BUCKET_NAME = 'devgurus-raw-data'
+PROCESSED_DATA_BUCKET_NAME = 'devgurus-processed-data'
 def lambda_handler(event, context):
-    # Common headers for all responses
+    s3_client = boto3.client('s3')
+
+    router = Router(RAW_DATA_BUCKET_NAME, RAW_DATA_BUCKET_NAME, s3_client)
+
     common_headers = {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'  # Add this line for CORS
+        'Access-Control-Allow-Origin': '*'
     }
-    path = event.get('path')
 
-    # Check the path and return the appropriate response
-    if path == '/get-countries':
+    try:
+        response_body, status_code = router.route(event.get('path'))
         return {
-            'statusCode': 200,
+            'statusCode': status_code,
             'headers': common_headers,
-            'body': json.dumps(get_countries_names())
+            'body': json.dumps(response_body)
         }
-    elif path == '/':
+    except Exception as e:
+        logging.error(f"Error: {str(e)}")
         return {
-            'statusCode': 200,
+            'statusCode': 500,
             'headers': common_headers,
-            'body': json.dumps("Hello World")
+            'body': json.dumps("Internal Server Error")
         }
-    else:
-        # Fallback for other paths
-        return {
-            'statusCode': 404,
-            'headers': common_headers,
-            'body': json.dumps("Not Found")
-        }
-
-
-# Your existing functions (list_folders and get_countries_names) remain the same
-
-
-def list_folders(bucket_name, prefix):
-    s3_client = boto3.client('s3')
-    paginator = s3_client.get_paginator('list_objects_v2')
-    folder_names = set()
-
-    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix, Delimiter='/'):
-        for prefix_info in page.get('CommonPrefixes', []):
-            # Extracting just the folder name
-            folder_name = prefix_info.get('Prefix')[len(prefix):].strip('/')
-            folder_names.add(folder_name)
-
-    return list(folder_names)
-
-
-def get_countries_names():
-    bucket_name = 'devgurus-processed-data'
-    prefix = 'tmp/'
-
-    folders = list_folders(bucket_name, prefix)
-    return folders

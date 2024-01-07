@@ -4,17 +4,11 @@ on:
   push:
     branches:
       - '*'
-    paths:
-      - 'frontend/idp-frontend/**'
-      - 'fetch-data/**'
-      - 'process-data/**'
-      - 'serverless-api/**'
 
 
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'frontend/idp-frontend/')
 
     steps:
     - name: Checkout Repository
@@ -42,9 +36,7 @@ jobs:
 
 
   deploy-fetch-data:
-    needs: deploy-frontend
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'fetch-data/') || always()
     name: deploy-fetch-data
 
     env:
@@ -104,9 +96,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy-process-data-lambda:
-    needs: deploy-fetch-data
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'process-data/') || always()
 
     name: deploy-process-data-lambda
     env:
@@ -166,10 +156,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy-serverless-api:
-    needs: deploy-process-data-lambda
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'serverless-api/') || always()
-
     name: deploy-serverless-api-lambda
     env:
       NODE_VERSION: 14.x
