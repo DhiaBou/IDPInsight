@@ -5,11 +5,9 @@ on:
     branches:
       - '*'
 
-
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -97,7 +95,6 @@ jobs:
 
   deploy-process-data-lambda:
     runs-on: ubuntu-latest
-
     name: deploy-process-data-lambda
     env:
       NODE_VERSION: 14.x
