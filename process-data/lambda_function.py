@@ -43,13 +43,13 @@ def process_xlsx(bucket_name, file_key):
     for sheet_name in xlsx_file.sheet_names:
         df = pd.read_excel(xlsx_file, sheet_name=sheet_name, header=None)
         clean_sheet = clean_one_sheet(df)
-        if clean_sheet:
+        if clean_sheet is not None:
             processed_data_dict[f"{sheet_name}_{sheet_count}"] = clean_sheet
             sheet_count += 0
 
     # Process each DataFrame in the list
     file_counter = 0
-    for sheet_name, df in processed_data_dict:
+    for sheet_name, df in processed_data_dict.items():
         original_metadata["sheet_name"] = sheet_name
         new_df = rename_columns(df=df)
         new_df.dropna(inplace=True)  # drop null values

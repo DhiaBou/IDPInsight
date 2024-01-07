@@ -28,6 +28,7 @@ def process_hxl_files(file_path):
 
 
 def clean_one_sheet(sheet_data):
+    processed_data = None
     for i, row in enumerate(sheet_data.values.astype(str)):
         hxl_columns = find_hxl_indices(row)
         if hxl_columns:
@@ -35,8 +36,9 @@ def clean_one_sheet(sheet_data):
             desired_columns = pd.Index(hxl_indices.keys())
             processed_data = sheet_data[desired_columns].drop(index=range(i + 1))
             processed_data.rename(columns=hxl_indices, inplace=True)
+            break  # Once the headers are found and processed, exit the loop
 
-            return processed_data
+    return processed_data
 
 
 def convert_to_csv(file_path, output_dir):
