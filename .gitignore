@@ -6,6 +6,7 @@
 **/venv/
 **/poetry.lock/
 **/poetry.env/
+**/package-lock.json
 
 /build/
 .npm
