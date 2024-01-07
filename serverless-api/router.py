@@ -7,35 +7,47 @@ class Router:
         self.processed_data_bucket = processed_data_bucket_name
         self.s3_client = s3_client
 
-    def route(self, path):
+    def route(self, event):
+        path = event.get("path")
+        path_parameters = event.get("pathParameters", {})
+
         if path == "/get-countries":
-            return self.get_countries_datasets(), 200
+            return self.get_countries(), 200
         elif path == "/":
             return self.get_health(), 200
+        elif path.startswith("/get-datasets-for-a-country"):
+            country_isocode = path_parameters["isocode"]
+            return self.get_datasets_for_a_country(country_isocode), 200
         else:
-            return "Not Found", 404
+            return "Path Not Found", 404
+
+    def get_datasets_for_a_country(self, country_isocode):
+        datasets = self.list_folders(self.processed_data_bucket, f"tmp/{country_isocode}/")
+        country_datasets = []
+
+        for dataset in datasets:
+            metadata_file_key = f"tmp/{country_isocode}/{dataset}/metadata.json"
+            metadata_content = self.read_json_file(self.processed_data_bucket, metadata_file_key)
+            if metadata_content:
+                interesting_metadata = self.extract_metadata(metadata_content)
+                csv_files = self.list_files(
+                    self.processed_data_bucket, f"tmp/{country_isocode}/{dataset}/", file_extension=".csv"
+                )
+                interesting_metadata["csv_files"] = csv_files
+
+                country_datasets.append(interesting_metadata)
+        return country_datasets
+
+    def get_countries(self):
+        countries_folders = self.list_folders(self.processed_data_bucket, "tmp/")
+        return countries_folders
 
     def get_countries_datasets(self):
         countries_folders = self.list_folders(self.processed_data_bucket, "tmp/")
         country_datasets = {}
 
         for country in countries_folders:
-            datasets = self.list_folders(self.processed_data_bucket, f"tmp/{country}/")
-            country_metadata = []
-
-            for dataset in datasets:
-                metadata_file_key = f"tmp/{country}/{dataset}/metadata.json"
-                metadata_content = self.read_json_file(self.processed_data_bucket, metadata_file_key)
-                if metadata_content:
-                    interesting_metadata = self.extract_metadata(metadata_content)
-                    csv_files = self.list_files(
-                        self.processed_data_bucket, f"tmp/{country}/{dataset}/", file_extension=".csv"
-                    )
-                    interesting_metadata["csv_files"] = csv_files
-
-                    country_metadata.append(interesting_metadata)
-
-            country_datasets[country] = country_metadata
+            country_datasets[country] = self.get_datasets_for_a_country(country)
 
         return country_datasets
 
