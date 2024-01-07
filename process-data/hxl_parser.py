@@ -20,13 +20,14 @@ def process_hxl_files(file_path):
 
     for sheet_name in xlsx_file.sheet_names:
         sheet_data = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
-
-        clean_one_sheet(processed_data_list, sheet_data)
+        clean_sheet = clean_one_sheet(sheet_data)
+        if clean_sheet:
+            processed_data_list.append(clean_sheet)
 
     return processed_data_list
 
 
-def clean_one_sheet(processed_data_list, sheet_data):
+def clean_one_sheet(sheet_data):
     for i, row in enumerate(sheet_data.values.astype(str)):
         hxl_columns = find_hxl_indices(row)
         if hxl_columns:
@@ -35,7 +36,7 @@ def clean_one_sheet(processed_data_list, sheet_data):
             processed_data = sheet_data[desired_columns].drop(index=range(i + 1))
             processed_data.rename(columns=hxl_indices, inplace=True)
 
-            processed_data_list.append(processed_data)
+            return processed_data
 
 
 def convert_to_csv(file_path, output_dir):
