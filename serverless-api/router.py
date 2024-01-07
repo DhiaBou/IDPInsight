@@ -27,12 +27,29 @@ class Router:
                 metadata_file_key = f"tmp/{country}/{dataset}/metadata.json"
                 metadata_content = self.read_json_file(self.processed_data_bucket, metadata_file_key)
                 if metadata_content:
-                    extracted_metadata = self.extract_metadata(metadata_content)
-                    country_metadata.append(extracted_metadata)
+                    interesting_metadata = self.extract_metadata(metadata_content)
+                    csv_files = self.list_files(
+                        self.processed_data_bucket, f"tmp/{country}/{dataset}/", file_extension=".csv"
+                    )
+                    interesting_metadata["csv_files"] = csv_files
+
+                    country_metadata.append(interesting_metadata)
 
             country_datasets[country] = country_metadata
 
         return country_datasets
+
+    def list_files(self, bucket_name, prefix, file_extension=".csv"):
+        paginator = self.s3_client.get_paginator("list_objects_v2")
+        file_names = []
+
+        for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+            for obj in page.get("Contents", []):
+                if obj["Key"].endswith(file_extension):
+                    file_name = obj["Key"][len(prefix) :]
+                    file_names.append(file_name)
+
+        return file_names
 
     def read_json_file(self, bucket_name, file_key):
         try:
