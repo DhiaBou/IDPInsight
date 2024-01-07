@@ -4,10 +4,17 @@ on:
   push:
     branches:
       - '*'
+    paths:
+      - 'frontend/idp-frontend/**'
+      - 'fetch-data/**'
+      - 'process-data/**'
+      - 'serverless-api/**'
+
 
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'frontend/idp-frontend/')
 
     steps:
     - name: Checkout Repository
@@ -31,22 +38,22 @@ jobs:
         AWS_S3_BUCKET: devgurus-frontend-deployment-bucket
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        SOURCE_DIR: './frontend/idp-frontend/dist' # Adjust if your build output directory is different
+        SOURCE_DIR: './frontend/idp-frontend/dist'
 
 
   deploy-fetch-data:
     needs: deploy-frontend
-
-    name: deploy-fetch-data
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'fetch-data/')
+    name: deploy-fetch-data
+
     env:
-      NODE_VERSION: 14.x # used for installing the serverless-python-requirements dependency from NPM
+      NODE_VERSION: 14.x
     strategy:
       matrix:
         python-version:
-          - 3.11 # with a build matrix, you can specify a list of python versions to deploy with
+          - 3.11
     steps:
-      # --------- use Python to install Python dependencies and run linter, tests, etc. ---------
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -56,9 +63,7 @@ jobs:
       - name: Cache pip
         uses: actions/cache@v2
         with:
-          # This path is specific to Ubuntu
           path: ~/.cache/pip
-          # Look to see if there is a cache hit for the corresponding requirements file
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -69,7 +74,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      # --------- Use Node and NPM to install serverless-python-requirements ---------
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v1
         with:
@@ -80,7 +84,6 @@ jobs:
         env:
           cache-name: cache-node-modules
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
@@ -95,24 +98,24 @@ jobs:
       - name: Serverless Deploy
         run:
           npx serverless deploy
-        working-directory: ./fetch-data # Specify your directory
+        working-directory: ./fetch-data
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy-process-data-lambda:
     needs: deploy-fetch-data
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'process-data/')
 
     name: deploy-process-data-lambda
-    runs-on: ubuntu-latest
     env:
-      NODE_VERSION: 14.x # used for installing the serverless-python-requirements dependency from NPM
+      NODE_VERSION: 14.x
     strategy:
       matrix:
         python-version:
-          - 3.11 # with a build matrix, you can specify a list of python versions to deploy with
+          - 3.11
     steps:
-      # --------- use Python to install Python dependencies and run linter, tests, etc. ---------
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -122,9 +125,7 @@ jobs:
       - name: Cache pip
         uses: actions/cache@v2
         with:
-          # This path is specific to Ubuntu
           path: ~/.cache/pip
-          # Look to see if there is a cache hit for the corresponding requirements file
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -134,7 +135,6 @@ jobs:
           cd process-data
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      # --------- Use Node and NPM to install serverless-python-requirements ---------
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v1
         with:
@@ -145,7 +145,6 @@ jobs:
         env:
           cache-name: cache-node-modules
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
@@ -161,7 +160,69 @@ jobs:
       - name: Serverless Deploy
         run: 
           npx serverless deploy
-        working-directory: ./process-data # Specify your directory
+        working-directory: ./process-data
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  deploy-serverless-api:
+    needs: deploy-process-data-lambda
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'serverless-api/')
+
+    name: deploy-serverless-api-lambda
+    env:
+      NODE_VERSION: 14.x
+    strategy:
+      matrix:
+        python-version:
+          - 3.11
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: |
+          cd serverless-api
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install Node dependencies (specifically, serverless-python-requirements)
+        run: |
+          cd serverless-api
+          npm install
+
+      - name: Serverless Deploy
+        run:
+          npx serverless deploy
+        working-directory: ./serverless-api
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
