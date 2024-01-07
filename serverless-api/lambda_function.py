@@ -8,8 +8,6 @@ def lambda_handler(event, context):
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'  # Add this line for CORS
     }
-
-    # Get the path from the event object
     path = event.get('path')
 
     # Check the path and return the appropriate response

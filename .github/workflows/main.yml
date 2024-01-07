@@ -44,7 +44,7 @@ jobs:
   deploy-fetch-data:
     needs: deploy-frontend
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'fetch-data/')
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'fetch-data/') || always()
     name: deploy-fetch-data
 
     env:
@@ -106,7 +106,7 @@ jobs:
   deploy-process-data-lambda:
     needs: deploy-fetch-data
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'process-data/')
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'process-data/') || always()
 
     name: deploy-process-data-lambda
     env:
@@ -168,7 +168,7 @@ jobs:
   deploy-serverless-api:
     needs: deploy-process-data-lambda
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'serverless-api/')
+    if: github.event_name == 'push' && contains(github.event.head_commit.modified, 'serverless-api/') || always()
 
     name: deploy-serverless-api-lambda
     env:
