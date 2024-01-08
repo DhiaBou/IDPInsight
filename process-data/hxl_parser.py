@@ -4,18 +4,18 @@ import pandas as pd
 import regex as re
 import json
 
-#generate regex using top level identifiers
+#generate regex for checking core tags
 def generate_regex(file_name):
+
     # control structure
     suffix = r"(\+.*)*"
     with open(file_name, 'r') as file:
         tags = json.load(file)
-    prefix = r"#({})".format('|'.join(tags['tags']))
-
+    prefix = r"#({})".format('|'.join(tags['core_tags']))
     return prefix + suffix
 
 # Regular expression pattern for matching HXL tags
-hxl_pattern = generate_regex("tags.json")
+hxl_pattern = generate_regex("core_tags.json")
 
 # Function to find indices of columns with HXL tags
 def find_hxl_indices(row):
