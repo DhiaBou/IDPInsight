@@ -5,7 +5,7 @@
  * @returns 
  */
 export const getCountries = async (): Promise<string[]> => {
-    return fetch('https://2mj3txm4z1.execute-api.eu-west-1.amazonaws.com/dev/get-countries')
+    return fetch('https://ixmk8bqo29.execute-api.eu-west-1.amazonaws.com/dev/get-countries')
       .then((response) => {
         if(!response.ok) {
           throw new Error("Bad response");

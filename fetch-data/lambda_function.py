@@ -1,7 +1,7 @@
+import json
 import logging
 import os
-from datetime import datetime
-import json
+
 import boto3
 import requests
 from hdx.api.configuration import Configuration, ConfigurationError
@@ -66,7 +66,7 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
     location = dataset_locations[0]
 
     # Data stored under /tmp/country/dataset_name
-    path = "tmp/" + location + "/" + dataset_name
+    path = "tmp/" + location + "/" + dataset_id + "__" + dataset_name
     write_dataset_metadata(dataset_metadata, path)
 
     for resource in resources:
@@ -75,23 +75,18 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
 
 def write_resource_file(path, resource):
     download_url = resource.data.get("url", None)
-    file_name = resource.data.get("name", None)
+    file_name = f'{resource.data.get("id", "")}__{resource.data.get("name", None)}'
     file_type = resource.get_file_type()
     file_extension = "." + file_type
     if not file_extension in file_name:
         file_name = file_name + file_extension
-    if "last_modified" in resource.data:
-        try:
-            formatted_date = datetime.strptime(
-                resource.data["last_modified"], "%Y-%m-%dT%H:%M:%S.%f"
-            ).strftime("%Y-%m-%dT%H:%M")
-            file_name = formatted_date + "__" + file_name
-        except ValueError:
-            pass
     file_path = os.path.join(path, file_name)
     response = requests.get(download_url)
     if response.status_code == 200:
-        metadata = {"id": resource.get("id", "unknown")}
+        metadata = {
+            "id": resource.get("id", "unknown"),
+            "last_modified": resource.get("last_modified", "unknown"),
+        }
         S3_RESOURCE.Object(S3_BUCKET, file_path).put(Body=response.content, Metadata=metadata)
 
 
