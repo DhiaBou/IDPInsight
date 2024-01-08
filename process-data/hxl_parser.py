@@ -6,10 +6,11 @@ import json
 
 #generate regex using top level identifiers
 def generate_regex(file_name):
+    # control structure
     suffix = r"(\+.*)*"
     with open(file_name, 'r') as file:
         tags = json.load(file)
-    prefix = '({})'.format('|'.join(tags['tags']))
+    prefix = r"#({})".format('|'.join(tags['tags']))
 
     return prefix + suffix
 
