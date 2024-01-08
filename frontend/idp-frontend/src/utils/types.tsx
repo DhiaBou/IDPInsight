@@ -1,22 +1,38 @@
-
-
-type CountryButtonProps = {
-    countryName: string;
-    // You can add more props and their types here if needed
-};
-
 type SideMenuProps = {
-    countryNames: { name: string; }[]
+    selectedCountry: string,
+    setSelectedCountry: (country: string) => void
+}
+
+type ChartContainerProps = {
+    selectedCountry: string
 }
 
 interface RefreshContainerProps {
     onRefresh: () => void;
 }
 
+//------------------------------
+
+type Country = {
+    iso3: string,
+    name: string
+}
+
+type Dataset = {
+    //TODO: The dataset should have country type Country
+    country: string, 
+    id: string, 
+    name: string
+}
+
+
+//------------------------------
 
 export type {
-    CountryButtonProps, 
-    SideMenuProps, 
+    Country,
+    Dataset, 
+    SideMenuProps,
+    ChartContainerProps, 
     RefreshContainerProps
 };
 

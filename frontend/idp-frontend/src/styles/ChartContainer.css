@@ -1,12 +1,18 @@
-.diagram-container {
+.country-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     min-height: 100%;
     min-width: 90%;
     background-color: #87CEEB; /* Sky Blue */
 
     overflow: scroll;
   }
+
+.chart-container {
+  display: flex;
+  flex-direction: row;
+}
+
 
 .image-container {
   /* height: 400px;

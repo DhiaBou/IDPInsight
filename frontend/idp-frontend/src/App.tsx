@@ -9,8 +9,6 @@ import './App.css'
 import {Routes, Route, BrowserRouter} from "react-router-dom";
 
 import DefaultView from './views/DefaultView'
-import SudanView from './views/SudanView'
-import ColombiaView from './views/ColombiaView'
 
 function App() {
   return (
@@ -18,8 +16,6 @@ function App() {
       <Routes>
         <Route path="/">
           <Route index element={<DefaultView />} />
-          <Route path="sudan" element={<SudanView />} />
-          <Route path="colombia" element={<ColombiaView />}/>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -5,7 +5,7 @@ function NavBar() {
     return (
         <div className="navbar-container">
             <div>
-                <p> IDP Visualization </p>
+                <p> IDP Insight </p>
             </div>
         </div>
     );

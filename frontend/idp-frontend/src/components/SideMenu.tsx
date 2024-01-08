@@ -2,65 +2,92 @@ import "../styles/SideMenu.css"
 
 import React, { useEffect } from 'react';
 
-
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 
-import {getCountries} from "../utils/fetch_data";
+import {getCountries, getDatasets} from "../utils/fetch_data";
 import RefreshContainer from "./RefreshButton";
 
-function SideMenu() {
-    //TODO: Country dropdown related functionality
-    const [selectedCountry, setCountry] = React.useState('');
+import { SideMenuProps } from "../utils/types";
+
+
+function SideMenu({ selectedCountry, setSelectedCountry }: SideMenuProps) {
     const [selectedDataset, setDataset] = React.useState('');
 
-    const [countryMenuItems, setCountryMenuItems] = React.useState<JSX.Element[]>([]);
-    const [datasetMenuItems, setDatasetMenuItems] = React.useState<JSX.Element[]>([]);
+    const [countries, setCountries] = React.useState<JSX.Element[]>([]);
+    const [datasetNames, setDatasetNames] = React.useState<JSX.Element[]>([]);
     
+    const [refreshCountryKey, setRefreshCountryKey] = React.useState(0);
+    const [refreshDatasetKey, setRefreshDatasetKey] = React.useState(0);
 
-    const [refreshKey, setRefreshKey] = React.useState(0);
-
-    const fetchCountries = async () => {
-        const countries = await getCountries();
-        const countryMenuItemsBuf = countries.map(country => 
-          <MenuItem key={country} value={country}>{country}</MenuItem>
-        );
-        setCountryMenuItems(countryMenuItemsBuf);
+    //Get all countries and update the dropdown menu
+    const updateCountries = async () => {
+        const countries = await getCountries(new URL('https://ixmk8bqo29.execute-api.eu-west-1.amazonaws.com/dev/get-countries'));
+        setCountries(createCountryMenuItems(countries));
       };
 
     useEffect(() => {
-        fetchCountries();
-    }, [refreshKey]);
+        updateCountries();
+    }, [refreshCountryKey]);
 
+    //----------------------------------------------
+    const updateDatasetNames = async () => {
+        const datasets = await getDatasets(selectedCountry, new URL('https://ixmk8bqo29.execute-api.eu-west-1.amazonaws.com/dev/get-datasets-for-a-country'));
+       
+        const datasetNames = datasets.map(dataset => dataset.name);
+        setDatasetNames(createDatasetMenuItems(datasetNames));
+
+        console.log(datasets);
+    }
 
     useEffect(()=> {
-        setDatasetMenuItems([]);
-    }, [refreshKey]);
+        updateDatasetNames();
+    }, [refreshDatasetKey]);
 
  
     //Action handlers
     const handleCountryChange = (event: SelectChangeEvent) => {
-        setCountry(event.target.value);
-        //TODO: Dataset dropdown values should be updated
+        setSelectedCountry(event.target.value);
+        setRefreshDatasetKey(oldKey=>oldKey + 1);
     };
 
     const handleDatasetChange = (event: SelectChangeEvent) => {
-        setDataset(event.target.value);
+        if(selectedCountry.length !== 0 && event.target.value.length !== 0) {
+            updateDatasetNames();
+        }
     };
 
-    const handleRefresh = () => {
-        //Refresh button clicked
-        // Update the country list and dataset list
-        setRefreshKey(oldKey => oldKey + 1); 
+    const triggerCountryDropdown = () => {
+        setRefreshCountryKey(oldKey => oldKey + 1); 
     };
 
+    const triggerDatasetDropdown = () => {
+        console.log(setDataset);
+        setRefreshDatasetKey(oldKey => oldKey + 1);
+    }
+
+    //------------------------------------------------
+    // Helpers
+    //------------------------------------------------
+    const createCountryMenuItems = (countries: string[]) => {
+        const countryMenuItems = countries.map(country => 
+            <MenuItem key={country} value={country}>{country}</MenuItem>
+        );
+        return countryMenuItems;
+    }
+
+    const createDatasetMenuItems = (datasetNames: string[]) => {
+        const datasetsMenuItems = datasetNames.map(dataset => 
+            <MenuItem key={dataset} value={dataset}>{dataset}</MenuItem>
+        );
+        return datasetsMenuItems;
+    }
 
     return (
         <div className="side-menu-container">
-            <RefreshContainer onRefresh={ handleRefresh }></RefreshContainer>
-
+            <RefreshContainer onRefresh={ triggerCountryDropdown }></RefreshContainer>
 
             <FormControl>
                 <InputLabel id="select-country-label">Country</InputLabel>
@@ -70,8 +97,10 @@ function SideMenu() {
                         value={selectedCountry}
                         label="Country"
                         onChange={handleCountryChange}
+                        onClick={triggerCountryDropdown}
                     >
-                    {countryMenuItems}
+                    <MenuItem key="" value="">None</MenuItem>
+                    {countries}
                     </Select>
             </FormControl>
 
@@ -84,14 +113,15 @@ function SideMenu() {
                         value={selectedDataset}
                         label="Dataset"
                         onChange={handleDatasetChange}
+                        onClick={triggerDatasetDropdown}
                     >
-                    {datasetMenuItems}
+                    <MenuItem key="" value="">None</MenuItem>
+                    {datasetNames}
                     </Select>
                 </FormControl>
             }
         </div>
     );
 }
-
 
 export default SideMenu;

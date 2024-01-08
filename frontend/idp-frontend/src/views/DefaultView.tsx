@@ -1,11 +1,12 @@
-import NavBar from "../components/NavBar"
-import SideMenu from "../components/SideMenu"
-import DiagramBox from "../components/DiagramBox"
+import React from 'react';
 
-
-
+import NavBar from "../components/NavBar";
+import SideMenu from "../components/SideMenu";
+import ChartContainer from "../components/ChartContainer";
 
 function DefaultView() {
+    const [selectedCountry, setSelectedCountry] = React.useState('');
+    
     return (
         <div className="main-container">
             <div className="top-container">
@@ -13,13 +14,12 @@ function DefaultView() {
             </div>
 
             <div className="bottom-container">
-                <SideMenu/>
-                <DiagramBox countryName="sudan"/>
+                <SideMenu selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />
+                <ChartContainer selectedCountry={selectedCountry}/>
             </div>
         </div>
         
     );
 }
 
-
-export default DefaultView
+export default DefaultView;
