@@ -1,5 +1,4 @@
 import json
-from botocore.exceptions import NoCredentialsError
 import urllib.parse
 
 BASE_ROUTE = "tmp"
