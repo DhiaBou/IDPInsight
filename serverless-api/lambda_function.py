@@ -11,13 +11,14 @@ PROCESSED_DATA_BUCKET_NAME = "devgurus-processed-data"
 def lambda_handler(event, context):
     s3_client = boto3.client("s3")
 
-    router = Router(RAW_DATA_BUCKET_NAME, RAW_DATA_BUCKET_NAME, s3_client)
+    router = Router(RAW_DATA_BUCKET_NAME, PROCESSED_DATA_BUCKET_NAME, s3_client)
 
     common_headers = {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
 
     try:
-        response_body, status_code = router.route(event)
-        return {"statusCode": status_code, "headers": common_headers, "body": json.dumps(response_body)}
+        response_body = router.route(event)
+        return {"statusCode": 200, "headers": common_headers, "body": json.dumps(response_body)}
     except Exception as e:
-        logging.error(f"Error: {str(e)}")
+        logging.error(f"Error Occured")
+        logging.error(str(e))
         return {"statusCode": 500, "headers": common_headers, "body": json.dumps("Internal Server Error")}

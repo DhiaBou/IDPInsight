@@ -1,4 +1,7 @@
 import json
+from botocore.exceptions import NoCredentialsError
+
+BASE_ROUTE = "tmp"
 
 
 class Router:
@@ -8,26 +11,65 @@ class Router:
         self.s3_client = s3_client
 
     def route(self, event):
+        resource = event["resource"]
         path = event.get("path")
         path_parameters = event.get("pathParameters", {})
 
-        if path == "/get-countries":
-            return self.get_countries(), 200
-        elif path == "/":
-            return self.get_health(), 200
-        elif path.startswith("/get-datasets-for-a-country"):
+        if resource == "/get-countries":
+            return self.get_countries()
+        elif resource == "/":
+            return self.get_health()
+        elif resource == "/get-datasets-for-a-country/{isocode}":
             country_isocode = path_parameters["isocode"]
-            return self.get_datasets_for_a_country(country_isocode), 200
+            return self.get_datasets_for_a_country(country_isocode)
+        elif resource == "/get-datasets-for-a-country/{isocode}/{dataset}/{file_name}":
+            country_isocode = path_parameters["isocode"]
+            file = path_parameters["file"]
+            dataset = path_parameters["dataset"]
+            return self.get_file_content_and_metadata(country_isocode, file, dataset)
         else:
             return "Path Not Found", 404
+
+    def get_file_content_and_metadata(self, country_isocode, file_name, dataset):
+        file_key = f"tmp/{country_isocode}/{dataset}/{file_name}"
+        file_url = self.generate_presigned_url(self.processed_data_bucket, file_key)
+        file_id = self.get_file_id(self.processed_data_bucket, file_key)
+        dataset_metadata = self.get_metadata_for_a_dataset(country_isocode, dataset)
+        file_metadata = next(
+            (resource for resource in dataset_metadata["resources"] if resource["id"] == file_id), {}
+        )
+        ineteresting_metdata_fields = ["created", "description", "download_url", "id", "last_modified"]
+        filtered_file_metadata = {
+            tag: file_metadata[tag] for tag in ineteresting_metdata_fields if tag in file_metadata
+        }
+        return {"download_url": file_url, "original_file_metadata": filtered_file_metadata}
+
+    def generate_presigned_url(self, bucket_name, file_key, expiration=3600):
+        return self.s3_client.generate_presigned_url(
+            "get_object", Params={"Bucket": bucket_name, "Key": file_key}, ExpiresIn=expiration
+        )
+
+    def get_file_id(self, bucket_name, file_key):
+        obj = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
+        original_metadata = obj.get("Metadata", {})
+
+        return original_metadata.get("id", "")
+
+    def read_csv_file(self, bucket_name, file_key):
+        try:
+            response = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
+            csv_content = response["Body"].read().decode("utf-8")
+            return csv_content
+        except Exception as e:
+            print(f"Error reading {file_key}: {e}")
+            return None
 
     def get_datasets_for_a_country(self, country_isocode):
         datasets = self.list_folders(self.processed_data_bucket, f"tmp/{country_isocode}/")
         country_datasets = []
 
         for dataset in datasets:
-            metadata_file_key = f"tmp/{country_isocode}/{dataset}/metadata.json"
-            metadata_content = self.read_json_file(self.processed_data_bucket, metadata_file_key)
+            metadata_content = self.get_metadata_for_a_dataset(country_isocode, dataset)
             if metadata_content:
                 interesting_metadata = self.extract_metadata(metadata_content)
                 csv_files = self.list_files(
@@ -37,6 +79,11 @@ class Router:
 
                 country_datasets.append(interesting_metadata)
         return country_datasets
+
+    def get_metadata_for_a_dataset(self, country_isocode, dataset):
+        metadata_file_key = f"tmp/{country_isocode}/{dataset}/metadata.json"
+        metadata_content = self.read_json_file(self.processed_data_bucket, metadata_file_key)
+        return metadata_content
 
     def get_countries(self):
         countries_folders = self.list_folders(self.processed_data_bucket, "tmp/")
