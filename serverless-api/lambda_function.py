@@ -22,3 +22,4 @@ def lambda_handler(event, context):
         logging.error(f"Error Occured")
         logging.error(str(e))
         return {"statusCode": 500, "headers": common_headers, "body": json.dumps("Internal Server Error")}
+

@@ -1,5 +1,6 @@
 import json
 from botocore.exceptions import NoCredentialsError
+import urllib.parse
 
 BASE_ROUTE = "tmp"
 
@@ -22,16 +23,19 @@ class Router:
         elif resource == "/get-datasets-for-a-country/{isocode}":
             country_isocode = path_parameters["isocode"]
             return self.get_datasets_for_a_country(country_isocode)
-        elif resource == "/get-datasets-for-a-country/{isocode}/{dataset}/{file_name}":
+        elif resource == "/get-datasets-for-a-country/{isocode}/{datasetid}/{fileid}":
             country_isocode = path_parameters["isocode"]
-            file = path_parameters["file"]
-            dataset = path_parameters["dataset"]
+            file = path_parameters["fileid"]
+            dataset = path_parameters["datasetid"]
             return self.get_file_content_and_metadata(country_isocode, file, dataset)
         else:
             return "Path Not Found", 404
 
     def get_file_content_and_metadata(self, country_isocode, file_name, dataset):
-        file_key = f"tmp/{country_isocode}/{dataset}/{file_name}"
+        decoded_file_name = urllib.parse.unquote_plus(file_name)
+        decoded_dataset_name = urllib.parse.unquote_plus(dataset)
+
+        file_key = f"tmp/{country_isocode}/{decoded_dataset_name}/{decoded_file_name}"
         file_url = self.generate_presigned_url(self.processed_data_bucket, file_key)
         file_id = self.get_file_id(self.processed_data_bucket, file_key)
         dataset_metadata = self.get_metadata_for_a_dataset(country_isocode, dataset)
@@ -75,8 +79,12 @@ class Router:
                 csv_files = self.list_files(
                     self.processed_data_bucket, f"tmp/{country_isocode}/{dataset}/", file_extension=".csv"
                 )
-                interesting_metadata["csv_files"] = csv_files
-
+                encoded_csv_file_names = [
+                    urllib.parse.quote_plus(csv_file_name) for csv_file_name in csv_files
+                ]
+                interesting_metadata["csv_files"] = encoded_csv_file_names
+                dataset_folder_name = urllib.parse.quote_plus(dataset)
+                interesting_metadata["dataset_folder_name"] = dataset_folder_name
                 country_datasets.append(interesting_metadata)
         return country_datasets
 
