@@ -17,7 +17,7 @@ IDP_TAG = "internally displaced persons-idp"
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
-    path_parameters = event.get("pathParameters", {})
+    path_parameters = event.get("params", {}).get("path", {})
     location = path_parameters.get("location", "")
     organization = path_parameters.get("organization", "")
     try:
