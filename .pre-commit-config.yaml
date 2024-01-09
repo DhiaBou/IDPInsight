@@ -10,4 +10,4 @@ repos:
     rev: 'v7.32.0'
     hooks:
       - id: eslint
-        files: ^client/
+        files: ^idp-frontend/
