@@ -18,9 +18,8 @@ def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
     path_parameters = event.get("pathParameters", {})
-
-    location = event.get("location", "")
-    organization = event.get("organization", "")
+    location = path_parameters["location"]
+    organization = path_parameters["organization"]
     try:
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
@@ -68,7 +67,7 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
 
     # Data stored under /tmp/country/dataset_name
     path = "tmp/" + location + "/" + dataset_id + "__" + dataset_name
-    # write_dataset_metadata(dataset_metadata, path)
+    write_dataset_metadata(dataset_metadata, path)
 
     for resource in resources:
         write_resource_file(path, resource)
@@ -88,7 +87,7 @@ def write_resource_file(path, resource):
             "id": resource.get("id", "unknown"),
             "last_modified": resource.get("last_modified", "unknown"),
         }
-        print(metadata)
+        S3_RESOURCE.Object(S3_BUCKET, file_path).put(Body=response.content, Metadata=metadata)
 
 
 def write_dataset_metadata(dataset_metadata, path):
@@ -97,13 +96,3 @@ def write_dataset_metadata(dataset_metadata, path):
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
     S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata_json)
 
-
-print("Hi")
-logging.basicConfig(level=logging.INFO)
-setup_logging()
-try:
-    Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
-except ConfigurationError:
-    pass
-fetch_datasets(["SOM"], "international-organization-for-migration")
-print("Bye")
