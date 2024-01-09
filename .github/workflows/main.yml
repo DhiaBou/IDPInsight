@@ -7,31 +7,33 @@ on:
 
 jobs:
   deploy-frontend:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      runs-on: ubuntu-latest
 
-    - name: Install Dependencies
-      run: |
-        cd ./frontend/idp-frontend
-        npm install
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v2
 
-    - name: Build
-      run: |
-        cd ./frontend/idp-frontend
-        npm run build # or use 'vite build' if you use Vite for building
+        - name: Set up Node.js
+          uses: actions/setup-node@v2
 
-    - name: Deploy to AWS S3
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      with:
-        args: --follow-symlinks --delete
-      env:
-        AWS_S3_BUCKET: devgurus-frontend-deployment-bucket
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        SOURCE_DIR: './frontend/idp-frontend/dist'
+        - name: Install Dependencies
+          run: npm install  # or yarn install if you use yarn
+          working-directory: idp-frontend
 
+        - name: Build React App
+          run: npm run build  # or yarn build if you use yarn
+          working-directory: idp-frontend
+
+        - name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: 'eu-west-1'  # replace with your AWS region
+
+        - name: Deploy to S3
+          run: aws s3 sync ./build/ s3://devgurus-frontend-deployment-bucket
+          working-directory: idp-frontend
 
   deploy-fetch-data:
     runs-on: ubuntu-latest

@@ -41,11 +41,22 @@ class Router:
         file_metadata = next(
             (resource for resource in dataset_metadata["resources"] if resource["id"] == file_id), {}
         )
-        ineteresting_metdata_fields = ["created", "description", "download_url", "id", "last_modified"]
+        ineteresting_metdata_fields = [
+            "created",
+            "description",
+            "download_url",
+            "id",
+            "last_modified",
+            "name",
+        ]
         filtered_file_metadata = {
             tag: file_metadata[tag] for tag in ineteresting_metdata_fields if tag in file_metadata
         }
-        return {"download_url": file_url, "original_file_metadata": filtered_file_metadata}
+        return {
+            "download_url": file_url,
+            "original_file_metadata": filtered_file_metadata,
+            "dataset_metadata": self.extract_metadata(dataset_metadata),
+        }
 
     def generate_presigned_url(self, bucket_name, file_key, expiration=3600):
         return self.s3_client.generate_presigned_url(
