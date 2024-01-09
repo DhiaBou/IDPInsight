@@ -2,15 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table } from 'react-bootstrap';
 import Papa from 'papaparse';
 
-// If the CSV structure is known, replace `any` with a more specific type/interface
 type CsvRow = any;
 
-const CsvVisualizer: React.FC<{ url: string }> = ({ url }) => {
+const CsvDataProvider: React.FC<{ url: string, children: (data: CsvRow[], error: string | null, loading: boolean) => React.ReactNode }> = ({ url, children }) => {
   const [data, setData] = useState<CsvRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const response = await fetch(url);
         const text = await response.text();
@@ -18,52 +19,70 @@ const CsvVisualizer: React.FC<{ url: string }> = ({ url }) => {
           header: true,
           complete: (results) => {
             setData(results.data as CsvRow[]);
+            setLoading(false);
           },
-          error: (error: { message: React.SetStateAction<string | null>; }) => {
+          // @ts-ignore
+          error: (error) => {
             setError(error.message);
+            setLoading(false);
           }
         });
       } catch (err: any) {
         setError(err.message);
+        setLoading(false);
       }
     };
 
     fetchData();
   }, [url]);
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  // @ts-ignore
-  return (
-    <Card>
-      <Card.Body>
-        {data.length > 0 ? (
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                {Object.keys(data[0]).map((header, idx) => (
-                  <th key={idx}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((row, idx) => (
-                <tr key={idx}>
-                  {Object.entries(row).map(([key, value], idx) => (
-                    <td key={idx}>{'value.toString()'}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          <div>Loading...</div>
-        )}
-      </Card.Body>
-    </Card>
-  );
+  return <>{children(data, error, loading)}</>;
 };
+
+const ErrorDisplay: React.FC<{ error: string }> = ({ error }) => (
+  <div>Error: {error}</div>
+);
+
+const LoadingIndicator: React.FC = () => (
+  <div>Loading...</div>
+);
+
+const CsvTable: React.FC<{ data: CsvRow[] }> = ({ data }) => (
+  <div style={{ overflowX: 'auto', overflowY: 'auto', maxWidth: '100%', maxHeight: '500px' }}>
+    <Table striped bordered hover style={{ fontSize: '0.8rem', minWidth: '1000px' }}>
+      <thead>
+        <tr>
+          {Object.keys(data[0]).map((header, idx) => (
+            <th key={idx}>{header}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((row, idx) => (
+          <tr key={idx}>
+            {Object.entries(row).map(([key, value], idx) => (
+              // @ts-ignore
+              <td key={idx}>{value.toString()}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  </div>
+);
+const CsvVisualizer: React.FC<{ url: string }> = ({ url }) => (
+  <Card>
+    <Card.Body>
+      <CsvDataProvider url={url}>
+        {(data, error, loading) => {
+          console.log(data)
+          if (error) return <ErrorDisplay error={error} />;
+          if (loading) return <LoadingIndicator />;
+          return <CsvTable data={data} />;
+        }}
+      </CsvDataProvider>
+    </Card.Body>
+  </Card>
+);
 
 export default CsvVisualizer;
