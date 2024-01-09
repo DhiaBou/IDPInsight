@@ -1,4 +1,4 @@
 export interface Data {
-  id: number;
-  name: string;
+	id: number
+	name: string
 }
