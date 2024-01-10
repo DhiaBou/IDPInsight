@@ -18,8 +18,8 @@ def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
     path_parameters = event.get("pathParameters", {})
-    location = path_parameters.get("location", "")
-    organization = path_parameters.get("organization", "")
+    location = path_parameters["location"]
+    organization = path_parameters["organization"]
     try:
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
