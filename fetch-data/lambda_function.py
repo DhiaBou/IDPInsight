@@ -13,7 +13,6 @@ S3_CLIENT = boto3.client("s3")
 S3_RESOURCE = boto3.resource("s3")
 IDP_TAG = "internally displaced persons-idp"
 
-
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
@@ -71,7 +70,6 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
 
     for resource in resources:
         write_resource_file(path, resource)
-
 
 def write_resource_file(path, resource):
     download_url = resource.data.get("url", None)
