@@ -180,24 +180,36 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
     const [stackByKey, setStackByKey] = useState<string>('');
    const [groupByKey, setGroupByKey] = useState<string>('')
    const [valueKey, setValueKey] = useState<string>('')
+    const [shouldRenderChart, setShouldRenderChart] = useState<boolean>(false);
    const [processedData, setProcessedData] = useState<any[]>([])
 
    const keys = data.length > 0 ? Object.keys(data[0]) : []
 
+    const handleChartTypeChange = (newChartType: string) => {
+        setChartType(newChartType);
+        setShouldRenderChart(false); // Reset the render flag when chart type changes
+    };
    const handleGenerateChart = () => {
-       if (groupByKey && valueKey) {
-           let newData;
-           if (chartType === 'StackedBarChart' && stackByKey) {
+       if (chartType === 'StackedBarChart' && stackByKey) {
+           if (groupByKey && valueKey && stackByKey) {
+               let newData;
                newData = aggregateDataForStackedBarChart(data, groupByKey, valueKey, stackByKey);
-           } else {
-               newData = aggregateData(data, groupByKey, valueKey);
+               setProcessedData(newData);
+               setShouldRenderChart(true);
            }
-           setProcessedData(newData);
+       } else {
+           if (groupByKey && valueKey) {
+               let newData;
+               newData = aggregateData(data, groupByKey, valueKey);
+               setProcessedData(newData);
+               setShouldRenderChart(true);
+           }
        }
    };
 
 
    const renderChart = () => {
+       if (!shouldRenderChart) return null;
        let chartData = [];
 
        if (chartType === 'GroupedBarChart') {
@@ -252,7 +264,7 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
                     label='Chart type:'
                     value={chartType}
                     options={chartTypes}
-                    onChange={setChartType}
+                    onChange={(value) => handleChartTypeChange(value)}
                 />
              </div>
             <div className='col'>
