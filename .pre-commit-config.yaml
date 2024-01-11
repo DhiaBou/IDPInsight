@@ -4,10 +4,5 @@ repos:
     hooks:
       - id: black
         args: ['--line-length=110']
-        files: ^(server|process-data|fetch-data)/
+        files: ^(server|process-data|fetch-data|serverless-api)/
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: 'v7.32.0'
-    hooks:
-      - id: eslint
-        files: ^client/
