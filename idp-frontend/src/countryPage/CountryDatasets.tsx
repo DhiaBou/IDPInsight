@@ -29,7 +29,6 @@ const CountryDatasets: React.FC = () => {
                   title={dataset.title}
                   description={dataset.notes}
                   lastModified={dataset.last_modified}
-                  id={dataset.id}
                   source={dataset.dataset_source}
                   fileNames={dataset.csv_files}
                />

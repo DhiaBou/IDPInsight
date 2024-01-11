@@ -4,13 +4,13 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import Accordion from 'react-bootstrap/Accordion'
 import { useAccordionButton } from 'react-bootstrap/AccordionButton'
 import { Link } from 'react-router-dom'
+import formatDate from './utils'
 interface DatasetProps {
    country: string
    datasetFolderName: string
    title: string
    description: string
    lastModified: string
-   id: string
    source: string
    fileNames: string[]
 }
@@ -21,7 +21,6 @@ const DatasetComponent: React.FC<DatasetProps> = ({
    title,
    description,
    lastModified,
-   id,
    source,
    fileNames
 }) => {
@@ -56,10 +55,7 @@ const DatasetComponent: React.FC<DatasetProps> = ({
             <Card.Title>{title}</Card.Title>
             <Card.Text>{description}</Card.Text>
             <Card.Footer>
-               <small>Last modified: {lastModified}</small>
-            </Card.Footer>
-            <Card.Footer>
-               <small>Id: {id}</small>
+               <small>Last modified: {formatDate(lastModified)}</small>
             </Card.Footer>
             <Card.Footer>
                <small>Source: {source}</small>
