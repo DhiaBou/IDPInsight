@@ -13,18 +13,17 @@ S3_CLIENT = boto3.client("s3")
 S3_RESOURCE = boto3.resource("s3")
 IDP_TAG = "internally displaced persons-idp"
 
-
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
-
-    locations = event.get("locations", [])
-    organization = event.get("organization", "")
+    path_parameters = event.get("pathParameters", {})
+    location = event["location"]
+    organization = event["organization"]
     try:
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
         pass
-    fetch_datasets(locations, organization)
+    fetch_datasets([location], organization)
 
     return {
         "statusCode": 200,
@@ -72,7 +71,6 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
     for resource in resources:
         write_resource_file(path, resource)
 
-
 def write_resource_file(path, resource):
     download_url = resource.data.get("url", None)
     file_name = f'{resource.data.get("id", "")}__{resource.data.get("name", None)}'
@@ -95,3 +93,5 @@ def write_dataset_metadata(dataset_metadata, path):
     dataset_metadata_filename = "metadata.json"
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
     S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata_json)
+
+
