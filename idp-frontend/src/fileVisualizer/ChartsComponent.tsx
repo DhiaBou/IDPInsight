@@ -123,8 +123,15 @@ const StackedBarChart: React.FC<BarChartProps> = ({ data }) => {
             }
         });
     });
+    const MAX_STACK_KEYS = 100;
     const stackKeys = Array.from(stackKeySet);
-
+    if (stackKeys.length > MAX_STACK_KEYS) {
+    return (
+      <div style={{ color: 'red' }}>
+        The number of parameters is too high. Please refine your selection.
+      </div>
+    );
+  }
     return (
         <BarChart width={800} height={600} data={data}>
             <CartesianGrid strokeDasharray="3 3" />
