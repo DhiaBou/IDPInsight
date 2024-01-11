@@ -181,6 +181,7 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
    const [groupByKey, setGroupByKey] = useState<string>('')
    const [valueKey, setValueKey] = useState<string>('')
     const [shouldRenderChart, setShouldRenderChart] = useState<boolean>(false);
+   const [errorMessage, setErrorMessage] = useState('');
    const [processedData, setProcessedData] = useState<any[]>([])
 
    const keys = data.length > 0 ? Object.keys(data[0]) : []
@@ -190,12 +191,27 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
         setShouldRenderChart(false); // Reset the render flag when chart type changes
     };
    const handleGenerateChart = () => {
+       const MAX_STACKED_BAR_GROUP_ITEMS = 30;
        if (chartType === 'StackedBarChart' && stackByKey) {
            if (groupByKey && valueKey && stackByKey) {
                let newData;
                newData = aggregateDataForStackedBarChart(data, groupByKey, valueKey, stackByKey);
                setProcessedData(newData);
                setShouldRenderChart(true);
+               if (newData && newData.length > MAX_STACKED_BAR_GROUP_ITEMS) {
+                   setErrorMessage(`Too many group items. Maximum allowed is ${MAX_STACKED_BAR_GROUP_ITEMS}. Please refine your selection.`);
+                   setProcessedData([]);
+               } else {
+                   setProcessedData(newData);
+                   setErrorMessage('');
+               }
+               if (errorMessage) {
+                   return (
+                       <div style={{ color: 'red' }}>
+                           {errorMessage}
+                       </div>
+                   );
+               }
            }
        } else {
            if (groupByKey && valueKey) {
@@ -273,7 +289,8 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
                </button>
             </div>
          </div>
-         {processedData.length > 0 && renderChart()}
+         {errorMessage && <div style={{ color: 'red', marginTop: '10px' }}>{errorMessage}</div>}
+        {!errorMessage && processedData.length > 0 && renderChart()}
       </div>
    )
 }
