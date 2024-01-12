@@ -49,7 +49,7 @@ def contains_affected(numeric_cols, hxl_indices):
 
 def add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns):
     ii = i
-    while(numeric_regex.match(str(sheet_data[numeric_columns[aff_ind]].loc[i - 1]))):
+    while(numeric_regex.match(str(sheet_data[numeric_columns[aff_ind]].loc[i - 1])) or pd.isna(sheet_data[numeric_columns[aff_ind]].loc[i - 1])):
         i-=1
 
     if ii != i:

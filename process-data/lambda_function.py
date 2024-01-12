@@ -73,6 +73,7 @@ def rename_columns(df):
         "#affected+idps+ind": "Affected IDPs Individual Count",
         "#adm1+name": "Administrative Level 1 Name",
         "#date+survey": "Survey Date",
+        "#date+occured": "Occurance Date",
         "#adm0+pcode": "Country Code",
         "#adm2+name": "Administrative Level 2 Name",
         "#adm1+origin+pcode": "Origin Administrative Level 1 Code",
