@@ -4,6 +4,7 @@ import pandas as pd
 import regex as re
 from hxl import model
 
+# pattern for numeric data values
 NUMERIC_PATTERN = r"[0-9]+((,|.)[0-9]*)*"
 
 numeric_regex = re.compile(NUMERIC_PATTERN)
@@ -18,7 +19,7 @@ def numeric_row(df, row_index, cols):
     
     cols_numeric = list(filter(lambda x : numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys()))
      
-    if len(cols_numeric) is 0:
+    if len(cols_numeric) == 0:
         return None
     
     return cols_numeric
@@ -46,11 +47,20 @@ def contains_affected(numeric_cols, hxl_indices):
     # derived from https://stackoverflow.com/a/2364277
     return next((i for i, col_index in enumerate(numeric_cols) if hxl_indices[col_index].startswith("#affected")), None)
 
+def add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns):
+    ii = i
+    while(numeric_regex.match(str(sheet_data[numeric_columns[aff_ind]].loc[i - 1]))):
+        i-=1
+
+    if ii != i:
+        sheet_data = sheet_data.drop(ii, axis = 'index')
+        i-=1 #hxl tags have already been removed
+
+    return sheet_data, i
 
 def clean_current_sheet(sheet_data, hxl_columns, i):
     hxl_indices = {index: header for index, header in hxl_columns}
     numeric_columns = numeric_row(sheet_data, i, hxl_indices)
-    print(numeric_columns)
     if numeric_columns is None:
         return None
 
@@ -58,13 +68,7 @@ def clean_current_sheet(sheet_data, hxl_columns, i):
     if aff_ind is None:
         return None
 
-    ii = i
-    while(numeric_regex.match(str(sheet_data[numeric_columns[0]].loc[i - 1]))):
-            i-=1
-
-    if ii != i:
-        file = file.drop(prev_index, axis = 'index')
-    
+    sheet_data,i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
     desired_columns = pd.Index(hxl_indices.keys())
     processed_data = sheet_data[desired_columns].drop(index=range(i + 1))
     processed_data.rename(columns=hxl_indices, inplace=True)
