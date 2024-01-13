@@ -69,23 +69,7 @@ def process_xlsx(bucket_name, file_key):
 
 
 def rename_columns(df):
-    new_column_names = {
-        "#affected+idps+ind": "Affected IDPs Individual Count",
-        "#adm1+name": "Administrative Level 1 Name",
-        "#date+survey": "Survey Date",
-        "#date+occured": "Occurance Date",
-        "#adm0+pcode": "Country Code",
-        "#adm2+name": "Administrative Level 2 Name",
-        "#adm1+origin+pcode": "Origin Administrative Level 1 Code",
-        "#affected+idps+hh": "Affected IDPs Household Count",
-        "#adm0+name": "Country Name",
-        "#adm2+origin+name": "Origin Administrative Level 2 Name",
-        "#adm2+pcode": "Administrative Level 2 Code",
-        "#date+reported": "Reported Date",
-        "#adm2+origin+pcode": "Origin Administrative Level 2 Code",
-        "#adm1+pcode": "Administrative Level 1 Code",
-        "#adm1+origin+name": "Origin Administrative Level 1 Name",
-    }
+    new_column_names = {col_name: col_name.strip('#').replace('+', ' ') for col_name in df.columns.astype(str)}
 
     # Rename the columns that exist
     df.rename(columns={k: v for k, v in new_column_names.items() if k in df.columns}, inplace=True)

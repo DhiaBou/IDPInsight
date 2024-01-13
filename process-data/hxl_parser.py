@@ -97,8 +97,7 @@ def clean_current_sheet(sheet_data, hxl_columns, i):
         return None
 
     aff_ind = contains_affected(numeric_columns, hxl_indices)
-    if aff_ind is None:
-        return None
+    aff_ind = 0 if aff_ind is None else aff_ind
 
     sheet_data, i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
     desired_columns = pd.Index(hxl_indices.keys())
