@@ -15,7 +15,7 @@ const FileDetailsComponent: React.FC<FileDetailsComponentProps> = ({
    downloadUrl,
    cdvDownloadUrl,
    description,
-   lastModified,
+   lastModified
 }) => {
    return (
       <Card>

@@ -30,7 +30,7 @@ const CountryDatasets: React.FC = () => {
                   description={dataset.notes}
                   lastModified={dataset.last_modified}
                   source={dataset.dataset_source}
-                  fileNames={dataset.csv_files}
+                  processedFiles={dataset.processed_files}
                />
             </div>
          ))}
