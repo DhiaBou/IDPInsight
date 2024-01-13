@@ -9,9 +9,11 @@ NUMERIC_PATTERN = r"[0-9]+((,|.)[0-9]*)*"
 
 numeric_regex = re.compile(NUMERIC_PATTERN)
 
+
 # Function to find indices of columns with HXL tags
 def find_hxl_indices(row):
     return [(i, cell) for i, cell in enumerate(row) if model.Column.parse(cell)]
+
 
 # Function to process an Excel file and extract data with HXL tags
 def process_hxl_files(file_path):
@@ -26,29 +28,36 @@ def process_hxl_files(file_path):
 
     return processed_data_list
 
-#check if the dataset contains aleast one row with numeric values
+
+# check if the dataset contains aleast one row with numeric values
 def numeric_row(df, row_index, cols):
     if row_index + 1 >= df.size:
         return None
 
-    cols_numeric = list(filter(lambda x : numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys())) 
+    cols_numeric = list(filter(lambda x: numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys()))
     if not cols_numeric:
         return None
-    
+
     return cols_numeric
 
-#remove aggregation on a specific state level
+
+# remove aggregation on a specific state level
 def clean_adm_cols(df):
-    adm_cols = list(filter(lambda x : x.startswith("#adm"), df.columns.astype(str)))
+    adm_cols = list(filter(lambda x: x.startswith("#adm"), df.columns.astype(str)))
     if not adm_cols:
         return df
-    for col in adm_cols[: -1]:
+    for col in adm_cols[:-1]:
         df[col] = df[col].ffill()
-    return df.dropna(subset = adm_cols)
+    return df.dropna(subset=adm_cols)
+
 
 def contains_affected(numeric_cols, hxl_indices):
     # derived from https://stackoverflow.com/a/2364277
-    return next((i for i, col_index in enumerate(numeric_cols) if hxl_indices[col_index].startswith("#affected")), None)
+    return next(
+        (i for i, col_index in enumerate(numeric_cols) if hxl_indices[col_index].startswith("#affected")),
+        None,
+    )
+
 
 # add preceeding rows if tags are in the middle of the data frame
 def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
@@ -56,28 +65,30 @@ def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
     ii_tagrow = i_tagrow - 1
     dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # go up until we reach a cell that look like a column description (not numeric and not nan)
-    while(ii_tagrow > 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val))):
-        ii_tagrow-=1
+    while ii_tagrow > 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val)):
+        ii_tagrow -= 1
         dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # last row containing actual data
     ii_tagrow += 1
 
     if ii_tagrow != i_tagrow:
-        df.drop(i_tagrow, axis = 'index', inplace=True)
-        ii_tagrow -= 1 #hxl tags have already been removed
+        df.drop(i_tagrow, axis="index", inplace=True)
+        ii_tagrow -= 1  # hxl tags have already been removed
     return df, ii_tagrow
+
 
 def adjust_date_format(df):
     # derived from https://stackoverflow.com/a/2364277
-    date_cols = list(filter(lambda x : x.startswith("#date"), df.columns.astype(str)))
+    date_cols = list(filter(lambda x: x.startswith("#date"), df.columns.astype(str)))
     if not date_cols:
         return df
 
     # adjust format of date in all columns featuring a date
     for col in date_cols:
-        df[col] = pd.to_datetime(df[col], format='%Y-%m-%d')
+        df[col] = pd.to_datetime(df[col], format="%Y-%m-%d")
 
     return df
+
 
 def clean_current_sheet(sheet_data, hxl_columns, i):
     hxl_indices = {index: header for index, header in hxl_columns}
@@ -89,12 +100,13 @@ def clean_current_sheet(sheet_data, hxl_columns, i):
     if aff_ind is None:
         return None
 
-    sheet_data,i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
+    sheet_data, i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
     desired_columns = pd.Index(hxl_indices.keys())
     processed_data = sheet_data[desired_columns].drop(index=range(i + 1))
     processed_data.rename(columns=hxl_indices, inplace=True)
     processed_data = clean_adm_cols(processed_data)
     return adjust_date_format(processed_data)
+
 
 def clean_one_sheet(sheet_data):
     processed_data = None

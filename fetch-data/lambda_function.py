@@ -13,6 +13,7 @@ S3_CLIENT = boto3.client("s3")
 S3_RESOURCE = boto3.resource("s3")
 IDP_TAG = "internally displaced persons-idp"
 
+
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
@@ -65,11 +66,12 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
     location = dataset_locations[0]
 
     # Data stored under /tmp/country/dataset_name
-    path = "tmp/" + location + "/" + dataset_id + "__" + dataset_name
+    path = "tmp/" + location + "/" + dataset_id.replace("/", "_") + "__" + dataset_name.replace("/", "_")
     write_dataset_metadata(dataset_metadata, path)
 
     for resource in resources:
         write_resource_file(path, resource)
+
 
 def write_resource_file(path, resource):
     download_url = resource.data.get("url", None)
@@ -78,7 +80,8 @@ def write_resource_file(path, resource):
     file_extension = "." + file_type
     if not file_extension in file_name:
         file_name = file_name + file_extension
-    file_path = os.path.join(path, file_name)
+    file_name_formatted = file_name.replace("/", "_")
+    file_path = os.path.join(path, file_name_formatted)
     response = requests.get(download_url)
     if response.status_code == 200:
         metadata = {
@@ -93,5 +96,3 @@ def write_dataset_metadata(dataset_metadata, path):
     dataset_metadata_filename = "metadata.json"
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
     S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata_json)
-
-
