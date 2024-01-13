@@ -13,6 +13,7 @@ In the first cleaning step, we scan each sheet of an excel file for the aforemen
 Since not all datasets are ready for further processing at this point, we perform two additional cleaning step:
 * Upwards traversal of the datasets starting from the row containing the HXL-tags. Some datasets feature HXL-tags in the middle in contrast to what the HXL-Standard specifies. 
 * Removal of aggregations by filling out location information. Some datasets aggregate the number of idps on a specific country level.
+* Adjustment of the date-time-format in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
 
 ## Processing
 During the actually processing we remove rows that do not specify any information with respect to idps and perform some column renaming such that vital column identifiers are more human readable.
