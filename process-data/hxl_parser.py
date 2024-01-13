@@ -19,7 +19,7 @@ def numeric_row(df, row_index, cols):
     
     cols_numeric = list(filter(lambda x : numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys()))
      
-    if len(cols_numeric) == 0:
+    if not cols_numeric:
         return None
     
     return cols_numeric
@@ -48,15 +48,32 @@ def contains_affected(numeric_cols, hxl_indices):
     return next((i for i, col_index in enumerate(numeric_cols) if hxl_indices[col_index].startswith("#affected")), None)
 
 def add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns):
-    ii = i
-    while(numeric_regex.match(str(sheet_data[numeric_columns[aff_ind]].loc[i - 1])) or pd.isna(sheet_data[numeric_columns[aff_ind]].loc[i - 1])):
-        i-=1
+    ii = i - 1
+
+    dat_val = sheet_data[numeric_columns[aff_ind]].loc[ii]
+    # go up until we reach a cell that look like a column description (not numeric and not nan)
+    while(ii >= 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val))):
+        ii-=1
+        dat_val = sheet_data[numeric_columns[aff_ind]].loc[ii]
+    # last row containing actual data
+    ii += 1
 
     if ii != i:
-        sheet_data = sheet_data.drop(ii, axis = 'index')
-        i-=1 #hxl tags have already been removed
+        sheet_data = sheet_data.drop(i, axis = 'index')
+        ii-=1 #hxl tags have already been removed
 
-    return sheet_data, i
+    return sheet_data, ii
+
+def adjust_date_format(data):
+    # derived from https://stackoverflow.com/a/2364277
+    date_cols = list(filter(lambda x : x.startswith("#date"), data.columns))
+
+    if not date_col:
+        return data
+    for col in date_cols:
+        data[col] = pd.to_datetime(data[col], format='%Y-%m-%d')
+
+    return sheet_data
 
 def clean_current_sheet(sheet_data, hxl_columns, i):
     hxl_indices = {index: header for index, header in hxl_columns}
@@ -72,7 +89,8 @@ def clean_current_sheet(sheet_data, hxl_columns, i):
     desired_columns = pd.Index(hxl_indices.keys())
     processed_data = sheet_data[desired_columns].drop(index=range(i + 1))
     processed_data.rename(columns=hxl_indices, inplace=True)
-    return clean_adm_cols(processed_data)
+    processed_data = clean_adm_cols(processed_data)
+    return adjust_date_format(processed_data)
 
 def clean_one_sheet(sheet_data):
     processed_data = None

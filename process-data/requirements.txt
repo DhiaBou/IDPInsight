@@ -2,3 +2,4 @@ pandas
 regex
 openpyxl
 libhxl
+quantulum3[classifier]

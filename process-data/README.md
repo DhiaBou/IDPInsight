@@ -1,7 +1,9 @@
 # Process-Data
+This README outlines the foundations of the data processing performed in our application.
 
 ## HXL
-The data processing carried out by our application relies on the [HXL-Standard](https://hxlstandard.org/). Moreover this standard in particular allowed us to perform data cleaning by providing a uniform pattern for column identifiers independent of the relief organisation that created the dataset. For our MVP we limited the set of relief orgranization to [IOM](https://www.iom.int/).
+The data processing carried out by our application relies on the [HXL-Standard](https://hxlstandard.org/). Moreover this standard in particular allowed us to perform data cleaning by providing a uniform pattern for column identifiers independent of the relief organisation that created the dataset. For our MVP we limited the set of relief organization to [IOM](https://www.iom.int/). 
+An example for the column identifier, so called tags, specified by the HXL-Standard is "#affected+idps+ind" which idenfies a column featuring the number idps. HXL does not specifiy the whole tag but subtags which can be concatenated using "+" and the preceeding "#".
 
 ## Cleaning
 The cleaning process consists of several steps. Before we actualy perform any operations on the data, we download dataset, mainly excel file from [HDX](https://data.humdata.org/) using their API. Once we obtained all datasets for e.g. a specific country, we open those sheets using pandas.
