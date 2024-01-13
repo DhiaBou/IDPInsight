@@ -40,6 +40,8 @@ def numeric_row(df, row_index, cols):
 #remove aggregation on a specific state level
 def clean_adm_cols(df):
     adm_cols = list(filter(lambda x : x.startswith("#adm"), df.columns.astype(str)))
+    if not adm_cols:
+        return df
     for col in adm_cols[: -1]:
         df[col] = df[col].ffill()
     return df.dropna(subset = adm_cols)
