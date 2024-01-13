@@ -39,20 +39,17 @@ const FileVisualizer: React.FC = () => {
          <DatasetOfAFileComponent
             title={data.dataset_metadata.title}
             description={data.dataset_metadata.notes}
-            id={data.dataset_metadata.id}
             source={data.dataset_metadata.dataset_source}
             lastModified={data.dataset_metadata.last_modified}
          />
-         <div style={{ height: '10px' }} />
-         <h3>File: {file}</h3>
+         <div style={{ height: '20px' }} />
+         <h5>File: {file}</h5>
 
          <FileDetailsComponent
             name={data.original_file_metadata.name}
             downloadUrl={data.original_file_metadata.download_url}
             cdvDownloadUrl={data.download_url}
             description={data.original_file_metadata.description}
-            id={data.original_file_metadata.id}
-            source={data.original_file_metadata.source}
             lastModified={data.original_file_metadata.last_modified}
          />
          <div style={{ height: '20px' }} />
