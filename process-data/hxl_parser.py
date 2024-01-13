@@ -51,20 +51,21 @@ def contains_affected(numeric_cols, hxl_indices):
     return next((i for i, col_index in enumerate(numeric_cols) if hxl_indices[col_index].startswith("#affected")), None)
 
 # add preceeding rows if tags are in the middle of the data frame
-def add_preceeding_rows(df, aff_ind, i, numeric_columns):
-    ii = i - 1
-    dat_val = df[numeric_columns[aff_ind]].loc[ii]
+def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
+    # traverse beginning from the row ahead of the row of tags
+    ii_tagrow = i_tagrow - 1
+    dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # go up until we reach a cell that look like a column description (not numeric and not nan)
-    while(ii >= 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val))):
-        ii-=1
-        dat_val = df[numeric_columns[aff_ind]].loc[ii]
+    while(ii_tagrow > 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val))):
+        ii_tagrow-=1
+        dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # last row containing actual data
-    ii += 1
+    ii_tagrow += 1
 
-    if ii != i:
-        df.drop(i, axis = 'index', inplace=True)
-        ii-=1 #hxl tags have already been removed
-    return df, ii
+    if ii_tagrow != i_tagrow:
+        df.drop(i_tagrow, axis = 'index', inplace=True)
+        ii_tagrow -= 1 #hxl tags have already been removed
+    return df, ii_tagrow
 
 def adjust_date_format(df):
     # derived from https://stackoverflow.com/a/2364277
