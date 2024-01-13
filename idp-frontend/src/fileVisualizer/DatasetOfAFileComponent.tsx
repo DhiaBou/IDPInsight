@@ -1,11 +1,11 @@
 import React from 'react'
 import Card from 'react-bootstrap/Card'
+import formatDate from '../countryPage/utils'
 
 interface DatasetOfAFileComponentProps {
    title: string
    description: string
    lastModified: string
-   id: string
    source: string
 }
 
@@ -13,7 +13,6 @@ const DatasetOfAFileComponent: React.FC<DatasetOfAFileComponentProps> = ({
    title,
    description,
    lastModified,
-   id,
    source
 }) => {
    return (
@@ -22,10 +21,7 @@ const DatasetOfAFileComponent: React.FC<DatasetOfAFileComponentProps> = ({
             <Card.Title>{title}</Card.Title>
             <Card.Text>{description}</Card.Text>
             <Card.Footer>
-               <small>Last modified: {lastModified}</small>
-            </Card.Footer>
-            <Card.Footer>
-               <small>Id: {id}</small>
+               <small>Last modified: {formatDate(lastModified)}</small>
             </Card.Footer>
             <Card.Footer>
                <small>Source: {source}</small>

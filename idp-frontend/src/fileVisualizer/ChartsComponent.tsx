@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
+import React, { useState } from 'react'
+import { GroupedBarChart, Selector } from './SelectorAndChart'
 
 interface MyGroupedBarChartProps {
    data: { [key: string]: any }[]
@@ -22,55 +22,28 @@ const aggregateData = (data: { [key: string]: any }[], groupByKey: string, value
    return Object.entries(result).map(([name, value]) => ({ name, value }))
 }
 
-interface SelectorProps {
-   id: string
-   label: string
-   value: string
-   options: string[]
-   onChange: (value: string) => void
-}
-
-const Selector: React.FC<SelectorProps> = ({ id, label, value, options, onChange }) => (
-   <div className='mb-3' style={{ fontSize: '0.8rem' }}>
-      <label htmlFor={id} className='form-label'>
-         {label}
-      </label>
-      <select className='form-select' id={id} value={value} onChange={e => onChange(e.target.value)}>
-         <option value=''>Select an option</option>
-         {options.map(option => (
-            <option key={option} value={option}>
-               {option}
-            </option>
-         ))}
-      </select>
-   </div>
-)
-interface BarChartProps {
-   data: any[]
-}
-
-const GroupedBarChart: React.FC<BarChartProps> = ({ data }) => (
-   <BarChart width={500} height={300} data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-      <CartesianGrid strokeDasharray='3 3' />
-      <XAxis dataKey='name' />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar dataKey='value' fill='#8884d8' />
-   </BarChart>
-)
 const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
    const [groupByKey, setGroupByKey] = useState<string>('')
    const [valueKey, setValueKey] = useState<string>('')
    const [processedData, setProcessedData] = useState<any[]>([])
+   const maxNumberOfGroupedBars = 100
 
    const keys = data.length > 0 ? Object.keys(data[0]) : []
+
+   const [showAlert, setShowAlert] = useState<boolean>(true)
 
    const handleGenerateChart = () => {
       if (groupByKey && valueKey) {
          const newData = aggregateData(data, groupByKey, valueKey)
          setProcessedData(newData)
+         if (newData.length > 50) {
+            setShowAlert(true)
+         }
       }
+   }
+
+   const handleCloseAlert = () => {
+      setShowAlert(false)
    }
 
    return (
@@ -100,7 +73,19 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
                </button>
             </div>
          </div>
-         {processedData.length > 0 && <GroupedBarChart data={processedData} />}
+         {showAlert && processedData.length > maxNumberOfGroupedBars ? (
+            <div
+               className='alert alert-dismissible alert-danger'
+               style={{ position: 'fixed', bottom: '0', right: '0' }}
+            >
+               <button type='button' className='btn-close' data-bs-dismiss='alert' onClick={handleCloseAlert}></button>
+               <strong>Oh snap!</strong> <br />
+               Chart can not be rendered. Try choosing other labels.
+            </div>
+         ) : (
+            processedData.length > 0 &&
+            processedData.length <= maxNumberOfGroupedBars && <GroupedBarChart data={processedData} />
+         )}{' '}
       </div>
    )
 }
