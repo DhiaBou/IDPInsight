@@ -13,25 +13,6 @@ numeric_regex = re.compile(NUMERIC_PATTERN)
 def find_hxl_indices(row):
     return [(i, cell) for i, cell in enumerate(row) if model.Column.parse(cell)]
 
-#check if the dataset contains aleast one row with numeric values
-def numeric_row(df, row_index, cols):
-    if row_index + 1 >= df.size:
-        return None
-    
-    cols_numeric = list(filter(lambda x : numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys()))
-     
-    if not cols_numeric:
-        return None
-    
-    return cols_numeric
-
-#remove aggregation on a specific state level
-def clean_adm_cols(df):
-    adm_cols = list(filter(lambda x : x.startswith("#adm"), df.columns.astype(str)))
-    for col in adm_cols[: -1]:
-        df[col] = df[col].ffill()
-    return df.dropna(subset = adm_cols)
-
 # Function to process an Excel file and extract data with HXL tags
 def process_hxl_files(file_path):
     xlsx_file = pd.ExcelFile(file_path)
@@ -45,39 +26,55 @@ def process_hxl_files(file_path):
 
     return processed_data_list
 
+#check if the dataset contains aleast one row with numeric values
+def numeric_row(df, row_index, cols):
+    if row_index + 1 >= df.size:
+        return None
+
+    cols_numeric = list(filter(lambda x : numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys())) 
+    if not cols_numeric:
+        return None
+    
+    return cols_numeric
+
+#remove aggregation on a specific state level
+def clean_adm_cols(df):
+    adm_cols = list(filter(lambda x : x.startswith("#adm"), df.columns.astype(str)))
+    for col in adm_cols[: -1]:
+        df[col] = df[col].ffill()
+    return df.dropna(subset = adm_cols)
+
 def contains_affected(numeric_cols, hxl_indices):
     # derived from https://stackoverflow.com/a/2364277
     return next((i for i, col_index in enumerate(numeric_cols) if hxl_indices[col_index].startswith("#affected")), None)
 
 # add preceeding rows if tags are in the middle of the data frame
-def add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns):
+def add_preceeding_rows(df, aff_ind, i, numeric_columns):
     ii = i - 1
-    dat_val = sheet_data[numeric_columns[aff_ind]].loc[ii]
+    dat_val = df[numeric_columns[aff_ind]].loc[ii]
     # go up until we reach a cell that look like a column description (not numeric and not nan)
     while(ii >= 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val))):
         ii-=1
-        dat_val = sheet_data[numeric_columns[aff_ind]].loc[ii]
+        dat_val = df[numeric_columns[aff_ind]].loc[ii]
     # last row containing actual data
     ii += 1
 
     if ii != i:
-        sheet_data = sheet_data.drop(i, axis = 'index')
+        df.drop(i, axis = 'index', inplace=True)
         ii-=1 #hxl tags have already been removed
+    return df, ii
 
-    return sheet_data, ii
-
-def adjust_date_format(data):
+def adjust_date_format(df):
     # derived from https://stackoverflow.com/a/2364277
-    date_cols = list(filter(lambda x : x.startswith("#date"), data.columns))
-
-    if not date_col:
-        return data
+    date_cols = list(filter(lambda x : x.startswith("#date"), df.columns.astype(str)))
+    if not date_cols:
+        return df
 
     # adjust format of date in all columns featuring a date
     for col in date_cols:
-        data[col] = pd.to_datetime(data[col], format='%Y-%m-%d')
+        df[col] = pd.to_datetime(df[col], format='%Y-%m-%d')
 
-    return sheet_data
+    return df
 
 def clean_current_sheet(sheet_data, hxl_columns, i):
     hxl_indices = {index: header for index, header in hxl_columns}
