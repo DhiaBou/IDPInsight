@@ -118,7 +118,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
                         id='valueKeySelect'
                         label='Value key:'
                         value={valueKey}
-                        options={keys}
+                        options={keys.filter(key => key !== groupByKey)}
                         onChange={handleParameterChange(setValueKey)}
                     />
                 </div>
@@ -155,5 +155,3 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
 };
 
 export default ChartGenerator;
-
-
