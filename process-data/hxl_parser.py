@@ -62,7 +62,11 @@ def contains_affected(numeric_cols, hxl_indices):
 # add preceeding rows if tags are in the middle of the data frame
 def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
     # traverse beginning from the row ahead of the row of tags
+    if i_tagrow <= 0:
+        return df, ii_tagrow
+
     ii_tagrow = i_tagrow - 1
+
     dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # go up until we reach a cell that look like a column description (not numeric and not nan)
     while ii_tagrow > 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val)):
