@@ -1,12 +1,12 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { COLORS, BarData } from './utilities';
+import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
+import {COLORS, BarData} from './utilities';
 
 interface StackedBarChartProps {
     data: BarData[];
 }
 
-export const StackedBarChart: React.FC<StackedBarChartProps> = ({ data }) => {
+export const StackedBarChart: React.FC<StackedBarChartProps> = ({data}) => {
     const stackKeySet = new Set<string>();
     data.forEach(item => {
         Object.keys(item).forEach(key => {
@@ -21,7 +21,7 @@ export const StackedBarChart: React.FC<StackedBarChartProps> = ({ data }) => {
 
     if (stackKeys.length > MAX_STACK_KEYS) {
         return (
-            <div style={{ color: 'red' }}>
+            <div style={{color: 'red'}}>
                 The number of parameters is too high. Please refine your selection.
             </div>
         );
@@ -29,13 +29,13 @@ export const StackedBarChart: React.FC<StackedBarChartProps> = ({ data }) => {
 
     return (
         <BarChart width={800} height={600} data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
+            <CartesianGrid strokeDasharray="3 3"/>
+            <XAxis dataKey="name"/>
+            <YAxis/>
+            <Tooltip/>
+            <Legend/>
             {stackKeys.map((key, index) => (
-                <Bar key={key} dataKey={key} stackId="a" fill={COLORS[index % COLORS.length]} />
+                <Bar key={key} dataKey={key} stackId="a" fill={COLORS[index % COLORS.length]}/>
             ))}
         </BarChart>
     );
