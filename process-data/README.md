@@ -9,24 +9,24 @@ This README outlines the foundations of the data processing performed in our app
 ## HXL
 The data processing carried out by our application relies on the [HXL-Standard](https://hxlstandard.org/). Moreover this standard in particular allowed us to perform data cleaning by providing a uniform pattern for column identifiers independent of the relief organisation that created the dataset. For our MVP we limited the set of relief organization to [IOM](https://www.iom.int/). 
 An example for the column identifier, so called tags, specified by the HXL-Standard is "#affected+idps+ind" which idenfies a column featuring the number idps. HXL does not specifiy the whole tag but subtags which can be concatenated using "+" and the preceeding "#".
-The following table contains some sample HXL-Tags and the corresponding meaning in natural language
-| HXL Tag               | Description                              |
-|-----------------------|------------------------------------------|
-| `#affected+idps+ind`  | Affected IDPs Individual Count           |
-| `#adm1+name`          | Administrative Level 1 Name              |
-| `#date+survey`        | Survey Date                              |
-| `#date+occured`       | Occurrence Date                          |
-| `#adm0+pcode`         | Country Code                             |
-| `#adm2+name`          | Administrative Level 2 Name              |
-| `#adm1+origin+pcode`  | Origin Administrative Level 1 Code       |
-| `#affected+idps+hh`   | Affected IDPs Household Count            |
-| `#adm0+name`          | Country Name                             |
-| `#adm2+origin+name`   | Origin Administrative Level 2 Name       |
-| `#adm2+pcode`         | Administrative Level 2 Code              |
-| `#date+reported`      | Reported Date                            |
-| `#adm2+origin+pcode`  | Origin Administrative Level 2 Code       |
-| `#adm1+pcode`         | Administrative Level 1 Code              |
-| `#adm1+origin+name`   | Origin Administrative Level 1 Name       |
+The following table contains some sample HXL-Tags as well as the corresponding meaning in natural language and the more human readable as given by our application.
+| HXL Tag                | Description                            | Modified Name             |
+|------------------------|----------------------------------------|------------------------------|
+| `#affected+idps+ind`   | Affected IDPs Individual Count         | affected-idps-ind           |
+| `#adm1+name`           | Administrative Level 1 Name            | adm1-name                   |
+| `#date+survey`         | Survey Date                            | date-survey                 |
+| `#date+occured`        | Occurrence Date                        | date-occurred               |
+| `#adm0+pcode`          | Country Code                           | adm0-pcode                  |
+| `#adm2+name`           | Administrative Level 2 Name            | adm2-name                   |
+| `#adm1+origin+pcode`   | Origin Administrative Level 1 Code     | adm1-origin-pcode           |
+| `#affected+idps+hh`    | Affected IDPs Household Count          | affected-idps-hh            |
+| `#adm0+name`           | Country Name                           | adm0-name                   |
+| `#adm2+origin+name`    | Origin Administrative Level 2 Name     | adm2-origin-name            |
+| `#adm2+pcode`          | Administrative Level 2 Code            | adm2-pcode                  |
+| `#date+reported`       | Reported Date                          | date-reported               |
+| `#adm2+origin+pcode`   | Origin Administrative Level 2 Code     | adm2-origin-pcode           |
+| `#adm1+pcode`          | Administrative Level 1 Code            | adm1-pcode                  |
+| `#adm1+origin+name`    | Origin Administrative Level 1 Name     | adm1-origin-name            |
 
 ## Cleaning
 The cleaning process consists of several steps. Before we actualy perform any operations on the data, we download dataset, mainly excel file from [HDX](https://data.humdata.org/) using their API. Once we obtained all datasets for e.g. a specific country, we open those sheets using pandas.

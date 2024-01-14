@@ -69,7 +69,7 @@ def process_xlsx(bucket_name, file_key):
 
 
 def rename_columns(df):
-    new_column_names = {col_name: col_name.strip('#').replace('+', ' ') for col_name in df.columns.astype(str)}
+    new_column_names = {col_name: col_name.strip('#').replace('+', '-') for col_name in df.columns.astype(str)}
 
     # Rename the columns that exist
     df.rename(columns={k: v for k, v in new_column_names.items() if k in df.columns}, inplace=True)
