@@ -96,6 +96,7 @@ def clean_current_sheet(sheet_data, hxl_columns, i):
     if numeric_columns is None:
         return None
 
+    # use affected column is possible
     aff_ind = contains_affected(numeric_columns, hxl_indices)
     aff_ind = 0 if aff_ind is None else aff_ind
 
@@ -117,7 +118,7 @@ def clean_one_sheet(sheet_data):
 
     return processed_data
 
-
+#for testing
 def convert_to_csv(file_path, output_dir):
     for data_frame in process_hxl_files(file_path):
         file_name = os.path.basename(file_path).replace(".", "-")
