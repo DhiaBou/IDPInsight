@@ -15,6 +15,7 @@ S3_RESOURCE = boto3.resource("s3")
 IDP_TAG = "internally displaced persons-idp"
 
 
+
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
@@ -43,8 +44,8 @@ def fetch_datasets(locations, organization, start_last_modified_str):
 
     for dataset in datasets:
         last_modified_str = dataset.get("last_modified", "")
-        last_modified = datetime.strptime(last_modified_str, "%Y-%m-%d") if last_modified_str else None
-        start_last_modified = datetime.strptime(start_last_modified_str, "%d.%m.%Y") if start_last_modified_str != "" else None
+        last_modified = datetime.strptime(last_modified_str, "%Y-%m-%dT%H:%M:%S.%f") if last_modified_str else None
+        start_last_modified = datetime.strptime(start_last_modified_str, "%Y-%m-%d") if start_last_modified_str != "" else None
 
         if last_modified == None or start_last_modified == None or last_modified >= start_last_modified:
             dataset_id = dataset.get_name_or_id(False)
@@ -107,3 +108,4 @@ def write_dataset_metadata(dataset_metadata, path):
     dataset_metadata_filename = "metadata.json"
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
     S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata_json)
+

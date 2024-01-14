@@ -28,7 +28,6 @@ const CountryDatasets: React.FC = () => {
     try {
       setLoading(true);
       const endpoint = `${ENDPOINTS.triggerRefresh}/${countryValue}/${selectedOrganization}/${selectedDate}`;
-
       await axios.get(endpoint);
       setLoading(false);
       // After triggering refresh, fetch the updated data
