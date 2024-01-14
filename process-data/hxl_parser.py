@@ -84,8 +84,11 @@ def adjust_date_format(df):
         return df
 
     # adjust format of date in all columns featuring a date
-    for col in date_cols:
-        df[col] = pd.to_datetime(df[col], format="%Y-%m-%d")
+    try:
+        for col in date_cols:
+            df[col] = pd.to_datetime(df[col], format="%Y-%m-%d")
+    except ValueError as _:
+        pass
 
     return df
 
