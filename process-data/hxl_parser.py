@@ -96,14 +96,13 @@ def adjust_date_format(df):
 def clean_current_sheet(sheet_data, hxl_columns, i):
     hxl_indices = {index: header for index, header in hxl_columns}
     numeric_columns = numeric_row(sheet_data, i, hxl_indices)
-    if numeric_columns is None:
-        return None
+    
+    if not numeric_columns is None:
+        # use affected column is possible
+        aff_ind = contains_affected(numeric_columns, hxl_indices)
+        aff_ind = 0 if aff_ind is None else aff_ind
+        sheet_data, i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
 
-    # use affected column is possible
-    aff_ind = contains_affected(numeric_columns, hxl_indices)
-    aff_ind = 0 if aff_ind is None else aff_ind
-
-    sheet_data, i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
     desired_columns = pd.Index(hxl_indices.keys())
     processed_data = sheet_data[desired_columns].drop(index=range(i + 1))
     processed_data.rename(columns=hxl_indices, inplace=True)
