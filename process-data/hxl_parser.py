@@ -84,8 +84,11 @@ def adjust_date_format(df):
         return df
 
     # adjust format of date in all columns featuring a date
-    for col in date_cols:
-        df[col] = pd.to_datetime(df[col], format="%Y-%m-%d")
+    try:
+        for col in date_cols:
+            df[col] = pd.to_datetime(df[col], format="%Y-%m-%d")
+    except ValueError as _:
+        pass
 
     return df
 
@@ -96,9 +99,9 @@ def clean_current_sheet(sheet_data, hxl_columns, i):
     if numeric_columns is None:
         return None
 
+    # use affected column is possible
     aff_ind = contains_affected(numeric_columns, hxl_indices)
-    if aff_ind is None:
-        return None
+    aff_ind = 0 if aff_ind is None else aff_ind
 
     sheet_data, i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
     desired_columns = pd.Index(hxl_indices.keys())
@@ -118,7 +121,7 @@ def clean_one_sheet(sheet_data):
 
     return processed_data
 
-
+#for testing
 def convert_to_csv(file_path, output_dir):
     for data_frame in process_hxl_files(file_path):
         file_name = os.path.basename(file_path).replace(".", "-")
