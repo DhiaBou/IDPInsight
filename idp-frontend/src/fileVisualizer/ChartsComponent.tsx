@@ -1,52 +1,102 @@
-import React, { useState } from 'react'
-import { GroupedBarChart, Selector } from './SelectorAndChart'
+import React, { useState } from 'react';
+import { GroupedBarChart } from './GroupedBarChart'; // Import GroupedBarChart component
+import { GroupedPieChart } from './GroupedPieChart'; // Import GroupedPieChart component
+import { StackedBarChart } from './StackedBarChart'; // Import StackedBarChart component
+import { aggregateData, aggregateDataForStackedBarChart } from './utilities'; // Import utility functions
 
-interface MyGroupedBarChartProps {
-   data: { [key: string]: any }[]
+interface ChartGeneratorProps {
+    data: { [key: string]: any }[];
 }
 
-const aggregateData = (data: { [key: string]: any }[], groupByKey: string, valueKey: string) => {
-   const result: { [key: string]: number } = {}
-
-   data.forEach(item => {
-      const key = item[groupByKey]
-      const value = parseInt(item[valueKey], 10) || 0
-
-      if (result[key]) {
-         result[key] += value
-      } else {
-         result[key] = value
-      }
-   })
-
-   return Object.entries(result).map(([name, value]) => ({ name, value }))
+interface SelectorProps {
+   id: string;
+   label: string;
+   value: string;
+   options: string[];
+   onChange: (value: string) => void;
 }
 
-const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
-   const [groupByKey, setGroupByKey] = useState<string>('')
-   const [valueKey, setValueKey] = useState<string>('')
-   const [processedData, setProcessedData] = useState<any[]>([])
-   const maxNumberOfGroupedBars = 100
+const Selector: React.FC<SelectorProps> = ({ id, label, value, options, onChange }) => (
+   <div className='mb-3' style={{ fontSize: '0.8rem' }}>
+      <label htmlFor={id} className='form-label'>
+         {label}
+      </label>
+      <select className='form-select' id={id} value={value} onChange={e => onChange(e.target.value)}>
+         <option value=''>Select an option</option>
+         {options.map(option => (
+            <option key={option} value={option}>
+               {option}
+            </option>
+         ))}
+      </select>
+   </div>
+);
 
-   const keys = data.length > 0 ? Object.keys(data[0]) : []
+const ChartGenerator: React.FC<ChartGeneratorProps> = ({ data }) => {
+    const chartTypes = ['GroupedBarChart', 'PieChart', 'StackedBarChart'];
+    const [chartType, setChartType] = useState<string>(chartTypes[0]);
+    const [stackByKey, setStackByKey] = useState<string>('');
+    const [groupByKey, setGroupByKey] = useState<string>('')
+    const [valueKey, setValueKey] = useState<string>('')
+    const [shouldRenderChart, setShouldRenderChart] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [processedData, setProcessedData] = useState<any[]>([])
+    const keys = data.length > 0 ? Object.keys(data[0]) : []
 
-   const [showAlert, setShowAlert] = useState<boolean>(true)
+    const handleChartTypeChange = (newChartType: string) => {
+        setChartType(newChartType);
+        setShouldRenderChart(false); // Reset the render flag when chart type changes
+    };
+    const handleGenerateChart = () => {
+        setErrorMessage('');
+        const MAX_STACKED_BAR_GROUP_ITEMS = 30;
+        if (chartType === 'StackedBarChart' && stackByKey) {
+            if (groupByKey && valueKey && stackByKey) {
+                let newData;
+                newData = aggregateDataForStackedBarChart(data, groupByKey, valueKey, stackByKey);
+                setProcessedData(newData);
+                setShouldRenderChart(true);
+                if (newData && newData.length > MAX_STACKED_BAR_GROUP_ITEMS) {
+                    setErrorMessage(`Too many group items. Maximum allowed is ${MAX_STACKED_BAR_GROUP_ITEMS}. Please refine your selection.`);
+                    setProcessedData([]);
+                } else {
+                    setProcessedData(newData);
+                    setErrorMessage('');
+                }
+                if (errorMessage) {
+                    return (
+                        <div style={{ color: 'red' }}>
+                            {errorMessage}
+                        </div>
+                    );
+                }
+            }
+        } else {
+            if (groupByKey && valueKey) {
+                let newData;
+                newData = aggregateData(data, groupByKey, valueKey);
+                setProcessedData(newData);
+                setShouldRenderChart(true);
+            }
+        }
+    };
 
-   const handleGenerateChart = () => {
-      if (groupByKey && valueKey) {
-         const newData = aggregateData(data, groupByKey, valueKey)
-         setProcessedData(newData)
-         if (newData.length > 50) {
-            setShowAlert(true)
-         }
-      }
-   }
-
-   const handleCloseAlert = () => {
-      setShowAlert(false)
-   }
-
-   return (
+    const renderChart = () => {
+        if (!shouldRenderChart) return null;
+        let chartData = [];
+        if (chartType === 'GroupedBarChart') {
+            chartData = aggregateData(data, groupByKey, valueKey);
+            return <GroupedBarChart data={chartData} />;
+        } else if (chartType === 'PieChart') {
+            chartData = aggregateData(data, groupByKey, valueKey);
+            return <GroupedPieChart data={chartData} />;
+        } else if (chartType === 'StackedBarChart' && stackByKey) {
+            chartData = aggregateDataForStackedBarChart(data, groupByKey, valueKey, stackByKey);
+            return <StackedBarChart data={chartData} />;
+        }
+        return null;
+    };
+    return (
       <div>
          <div className='row'>
             <div className='col'>
@@ -67,27 +117,38 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
                   onChange={setValueKey}
                />
             </div>
+             {chartType === 'StackedBarChart' && (
+            <div className='col'>
+                <Selector
+                    id='stackByKeySelect'
+                    label='Stack by:'
+                    value={stackByKey}
+                    options={keys.filter(key => key !== groupByKey && key !== valueKey)}
+                    onChange={setStackByKey}
+                />
+            </div>
+            )}
+             <div className='col'>
+                <Selector
+                    id='chartTypeSelect'
+                    label='Chart type:'
+                    value={chartType}
+                    options={chartTypes}
+                    onChange={(value) => handleChartTypeChange(value)}
+                />
+             </div>
             <div className='col'>
                <button className='btn btn-primary btn-sm my-4' onClick={handleGenerateChart}>
                   Generate Chart
                </button>
             </div>
          </div>
-         {showAlert && processedData.length > maxNumberOfGroupedBars ? (
-            <div
-               className='alert alert-dismissible alert-danger'
-               style={{ position: 'fixed', bottom: '0', right: '0' }}
-            >
-               <button type='button' className='btn-close' data-bs-dismiss='alert' onClick={handleCloseAlert}></button>
-               <strong>Oh snap!</strong> <br />
-               Chart can not be rendered. Try choosing other labels.
-            </div>
-         ) : (
-            processedData.length > 0 &&
-            processedData.length <= maxNumberOfGroupedBars && <GroupedBarChart data={processedData} />
-         )}{' '}
+         {errorMessage && <div style={{ color: 'red', marginTop: '10px' }}>{errorMessage}</div>}
+        {!errorMessage && processedData.length > 0 && renderChart()}
       </div>
    )
-}
+};
 
-export default MyGroupedBarChart
+export default ChartGenerator;
+
+
