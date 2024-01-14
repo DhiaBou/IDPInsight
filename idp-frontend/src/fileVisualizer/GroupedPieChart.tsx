@@ -1,20 +1,18 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip } from 'recharts';
-import { COLORS } from './utilities'; // Import COLORS from utilities
+import { COLORS } from './utilities';
 
-// Define the shape of data items
 interface PieChartData {
     name: string;
     value: number;
 }
 
-// Define props for the GroupedPieChart component
 interface PieChartProps {
-    data: PieChartData[]; // Array of data items
+    data: PieChartData[];
 }
 
 export const GroupedPieChart: React.FC<PieChartProps> = ({ data }) => {
-    const LABEL_THRESHOLD = 0.02; // Threshold for displaying labels
+    const LABEL_THRESHOLD = 0.02;
 
     return (
         <PieChart width={1200} height={800}>

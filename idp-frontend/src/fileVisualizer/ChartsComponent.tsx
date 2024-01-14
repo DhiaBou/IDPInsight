@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { GroupedBarChart } from './GroupedBarChart'; // Import GroupedBarChart component
-import { GroupedPieChart } from './GroupedPieChart'; // Import GroupedPieChart component
-import { StackedBarChart } from './StackedBarChart'; // Import StackedBarChart component
-import { aggregateData, aggregateDataForStackedBarChart } from './utilities'; // Import utility functions
+import { GroupedBarChart } from './GroupedBarChart';
+import { GroupedPieChart } from './GroupedPieChart';
+import { StackedBarChart } from './StackedBarChart';
+import { aggregateData, aggregateDataForStackedBarChart } from './utilities';
 
 interface ChartGeneratorProps {
     data: { [key: string]: any }[];
@@ -42,14 +42,19 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ data }) => {
     const [errorMessage, setErrorMessage] = useState('');
     const [processedData, setProcessedData] = useState<any[]>([])
     const keys = data.length > 0 ? Object.keys(data[0]) : []
+    const MAX_STACKED_BAR_GROUP_ITEMS = 50;
 
     const handleChartTypeChange = (newChartType: string) => {
         setChartType(newChartType);
-        setShouldRenderChart(false); // Reset the render flag when chart type changes
+        setShouldRenderChart(false);
+    };
+
+    const handleParameterChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (value: string) => {
+        setter(value);
+        setShouldRenderChart(false);
     };
     const handleGenerateChart = () => {
         setErrorMessage('');
-        const MAX_STACKED_BAR_GROUP_ITEMS = 30;
         if (chartType === 'StackedBarChart' && stackByKey) {
             if (groupByKey && valueKey && stackByKey) {
                 let newData;
@@ -105,7 +110,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ data }) => {
                   label='Group by:'
                   value={groupByKey}
                   options={keys}
-                  onChange={setGroupByKey}
+                  onChange={handleParameterChange(setGroupByKey)}
                />
             </div>
             <div className='col'>
@@ -114,7 +119,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ data }) => {
                   label='Value key:'
                   value={valueKey}
                   options={keys}
-                  onChange={setValueKey}
+                  onChange={handleParameterChange(setValueKey)}
                />
             </div>
              {chartType === 'StackedBarChart' && (
@@ -124,7 +129,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({ data }) => {
                     label='Stack by:'
                     value={stackByKey}
                     options={keys.filter(key => key !== groupByKey && key !== valueKey)}
-                    onChange={setStackByKey}
+                    onChange={handleParameterChange(setStackByKey)}
                 />
             </div>
             )}

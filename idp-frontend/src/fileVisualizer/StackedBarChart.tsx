@@ -1,9 +1,9 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { COLORS, aggregateDataForStackedBarChart, BarData } from './utilities'; // Import COLORS and utility functions
+import { COLORS, BarData } from './utilities';
 
 interface StackedBarChartProps {
-    data: BarData[]; // Define the type of data expected
+    data: BarData[];
 }
 
 export const StackedBarChart: React.FC<StackedBarChartProps> = ({ data }) => {
