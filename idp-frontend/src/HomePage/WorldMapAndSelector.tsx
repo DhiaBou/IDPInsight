@@ -24,7 +24,7 @@ export const WorldMapAndSelector: React.FC<HighlightedWorldMapProps> = ({ countr
       setSelectedCountryId(id)
    }
    const navigateToCountryDetails = () => {
-      navigate('/${selectedCountryId}')
+      navigate(`/${selectedCountryId}`)
    }
 
    const handleDropdownSelect = (eventKey: any) => {
@@ -57,18 +57,18 @@ export const WorldMapAndSelector: React.FC<HighlightedWorldMapProps> = ({ countr
             </Dropdown>{' '}
             <div />
             <Button
-        variant='primary'
-        onClick={navigateToCountryDetails}
-        style={{
-            fontSize: '18px',
-            borderRadius: '5px',
-            backgroundColor: selectedCountry ? '#007bff' : 'grey', // Assuming 'selectedCountry' holds the selected country state
-            pointerEvents: selectedCountry ? 'auto' : 'none', // Disables click events when the button is greyed out
-            opacity: selectedCountry ? 1 : 0.5 // Makes the button look disabled
-        }}
-    >
-        Details
-    </Button>
+               variant='primary'
+               onClick={navigateToCountryDetails}
+               style={{
+                  fontSize: '18px',
+                  borderRadius: '5px',
+                  backgroundColor: selectedCountry ? '#007bff' : 'grey', // Assuming 'selectedCountry' holds the selected country state
+                  pointerEvents: selectedCountry ? 'auto' : 'none', // Disables click events when the button is greyed out
+                  opacity: selectedCountry ? 1 : 0.5 // Makes the button look disabled
+               }}
+            >
+               Details
+            </Button>
          </div>
       )
    }
