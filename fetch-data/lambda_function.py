@@ -4,6 +4,7 @@ import os
 
 import boto3
 import requests
+from datetime import datetime
 from hdx.api.configuration import Configuration, ConfigurationError
 from hdx.data.dataset import Dataset
 from hdx.utilities.easy_logging import setup_logging
@@ -20,11 +21,12 @@ def lambda_handler(event, context):
     path_parameters = event.get("pathParameters", {})
     location = event["location"]
     organization = event["organization"]
+    start_last_modified = event["startlastmodified"]
     try:
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
         pass
-    fetch_datasets([location], organization)
+    fetch_datasets([location], organization, start_last_modified)
 
     return {
         "statusCode": 200,
@@ -32,19 +34,28 @@ def lambda_handler(event, context):
     }
 
 
-def fetch_datasets(locations, organization):
+def fetch_datasets(locations, organization, start_last_modified_str):
     # Obtain all datasets by the organization, specified as paramater
-    datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization}")
+    if organization == "all":
+        datasets = Dataset.search_in_hdx(q=IDP_TAG)
+    else:
+        datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization}")
 
     for dataset in datasets:
-        dataset_id = dataset.get_name_or_id(False)
-        dataset_name = dataset.get_name_or_id(True)
-        dataset_tags = dataset.get_tags()
-        dataset_locations = dataset.get_location_iso3s()
+        last_modified_str = dataset.get("last_modified", "")
+        last_modified = datetime.strptime(last_modified_str, "%Y-%m-%d") if last_modified_str else None
+        start_last_modified = datetime.strptime(start_last_modified_str, "%d.%m.%Y") if start_last_modified_str != "" else None
 
-        if IDP_TAG in dataset_tags and "hxl" in dataset_tags:
-            if check_locations(locations, dataset_locations):
-                download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
+        if last_modified == None or start_last_modified == None or last_modified >= start_last_modified:
+            dataset_id = dataset.get_name_or_id(False)
+            dataset_name = dataset.get_name_or_id(True)
+            dataset_tags = dataset.get_tags()
+            dataset_locations = dataset.get_location_iso3s()
+        
+
+            if IDP_TAG in dataset_tags and "hxl" in dataset_tags:
+                if check_locations(locations, dataset_locations):
+                    download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
 
 
 def check_locations(locations, dataset_locations):
