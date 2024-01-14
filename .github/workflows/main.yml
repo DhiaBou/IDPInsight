@@ -3,212 +3,102 @@ name: Deploy Python Lambda
 on:
   push:
     branches:
-      - main
+      - '*'
+
 jobs:
-  deploy-frontend:
-      runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v2
-
-        - name: Set up Node.js
-          uses: actions/setup-node@v2
-
-        - name: Install Dependencies
-          run: npm install  # or yarn install if you use yarn
-          working-directory: idp-frontend
-
-        - name: Build React App
-          run: npm run build  # or yarn build if you use yarn
-          working-directory: idp-frontend
-
-        - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: 'eu-west-1'  # replace with your AWS region
-
-        - name: Deploy to S3
-          run: aws s3 sync ./build/ s3://devgurus-frontend-deployment-bucket
-          working-directory: idp-frontend
-
-  deploy-fetch-data:
+  continuous-integration:
     runs-on: ubuntu-latest
-    name: deploy-fetch-data
 
-    env:
-      NODE_VERSION: 14.x
-    strategy:
-      matrix:
-        python-version:
-          - 3.11
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
+
+      - name: Set up Python all python version
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.7
+          architecture: x64
 
-      - name: Cache pip
+      - name: Install Python Virtual ENV
+        run: pip3 install virtualenv
+
+      - name: Setup Virtual env
         uses: actions/cache@v2
+        id: cache-venv
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          path: fastapi-server/venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('fastapi-server/**/requirements*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+            ${{ runner.os }}-venv-
+
+      - name: Activate and Install Dependencies into Virtual env
+        run: |
+          cd fastapi-server
+          python -m venv venv && source venv/bin/activate &&
+          pip3 install -r requirements.txt
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+
+      # Install all the app dependencies
       - name: Install dependencies
         run: |
-          cd fetch-data
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+          cd fastapi-server
+          pip3 install -r requirements.txt
 
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: Install Node dependencies (specifically, serverless-python-requirements)
+      # Build the app and run tests
+      - name: Build and Run Test
         run: |
-          cd fetch-data
-          npm install
+          export PYTHONPATH=$PWD/fastapi-server
+          cd fastapi-server
+          . venv/bin/activate && pytest
+      
 
-      - name: Serverless Deploy
-        run:
-          npx serverless deploy
-        working-directory: ./fetch-data
+      - name: Create Zipfile archive of Dependencies
+        run: |
+          cd fastapi-server/venv/lib/python3.7/site-packages
+          zip -r9 ../../../../api.zip .
+
+      - name: Add App to Zipfile
+        run: |
+          cd fastapi-server/app
+          zip -g ../../api.zip -r .
+
+      - name: Upload zip file artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: api
+          path: fastapi-server/api.zip
+
+
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    needs: [continuous-integration]
+    if: github.ref == 'refs/heads/main'
+    steps:
+
+      - name: Install AWS CLI
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
-  deploy-process-data-lambda:
-    runs-on: ubuntu-latest
-    name: deploy-process-data-lambda
-    env:
-      NODE_VERSION: 14.x
-    strategy:
-      matrix:
-        python-version:
-          - 3.11
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Download Lambda api.zip
+        uses: actions/download-artifact@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          name: api
 
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
-      - name: Install dependencies
-        run: |
-          cd process-data
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - name: Install Node dependencies (specifically, serverless-python-requirements)
-        run: |
-          cd process-data
-          npm install
-
-      - name: Serverless Deploy
-        run: 
-          npx serverless deploy
-        working-directory: ./process-data
+      - name: Upload to S3
+        run: aws s3 cp api.zip s3://devgurus-serverless-api-deployment-bucket/api.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
-  deploy-serverless-api:
-    runs-on: ubuntu-latest
-    name: deploy-serverless-api-lambda
-    env:
-      NODE_VERSION: 14.x
-    strategy:
-      matrix:
-        python-version:
-          - 3.11
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
-      - name: Install dependencies
-        run: |
-          cd serverless-api
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - name: Install Node dependencies (specifically, serverless-python-requirements)
-        run: |
-          cd serverless-api
-          npm install
-
-      - name: Serverless Deploy
-        run:
-          npx serverless deploy
-        working-directory: ./serverless-api
+      - name: Deploy new Lambda
+        run: aws lambda update-function-code --function-name devgurus-serverless-api --s3-bucket devgurus-serverless-api-deployment-bucket --s3-key api.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
