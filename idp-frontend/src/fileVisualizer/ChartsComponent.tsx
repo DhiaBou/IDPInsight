@@ -47,32 +47,36 @@ const MyGroupedBarChart: React.FC<MyGroupedBarChartProps> = ({ data }) => {
    }
 
    return (
-      <div>
-         <div className='row'>
-            <div className='col'>
-               <Selector
-                  id='groupBySelect'
-                  label='Group by:'
-                  value={groupByKey}
-                  options={keys}
-                  onChange={setGroupByKey}
-               />
-            </div>
-            <div className='col'>
-               <Selector
-                  id='valueKeySelect'
-                  label='Value key:'
-                  value={valueKey}
-                  options={keys}
-                  onChange={setValueKey}
-               />
-            </div>
-            <div className='col'>
-               <button className='btn btn-primary btn-sm my-4' onClick={handleGenerateChart}>
-                  Generate Chart
-               </button>
-            </div>
-         </div>
+       <div>
+    <div className='row'>
+        <div className='col'>
+            <Selector
+                id='groupBySelect'
+                label='Group by:'
+                value={groupByKey}
+                options={keys}
+                onChange={setGroupByKey}
+            />
+        </div>
+        <div className='col'>
+            <Selector
+                id='valueKeySelect'
+                label='Value key:'
+                value={valueKey}
+                options={keys}
+                onChange={setValueKey}
+            />
+        </div>
+        <div className='col d-flex align-items-end'>
+            <button
+                className='btn btn-primary btn-sm my-4'
+                onClick={handleGenerateChart}
+                style={{ padding: '12px 15px' }}  // Inline style to increase height
+            >
+                Generate chart
+            </button>
+        </div>
+    </div>
          {showAlert && processedData.length > maxNumberOfGroupedBars ? (
             <div
                className='alert alert-dismissible alert-danger'
