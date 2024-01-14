@@ -122,7 +122,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
                         onChange={handleParameterChange(setValueKey)}
                     />
                 </div>
-                {chartType === 'StackedBarChart' && (
+                {chartType === 'Stacked Bar Chart' && (
                     <div className='col'>
                         <Selector
                             id='stackByKeySelect'

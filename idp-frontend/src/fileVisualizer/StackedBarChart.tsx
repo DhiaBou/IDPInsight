@@ -22,7 +22,7 @@ export const StackedBarChart: React.FC<StackedBarChartProps> = ({data}) => {
     if (stackKeys.length > MAX_STACK_KEYS) {
         return (
             <div style={{color: 'red'}}>
-                The number of parameters is too high. Please refine your selection.
+                Too many stack items. Maximum allowed is {MAX_STACK_KEYS}. Please refine your selection.
             </div>
         );
     }
