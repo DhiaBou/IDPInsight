@@ -33,11 +33,9 @@ def process_hxl_files(file_path):
 def numeric_row(df, row_index, cols):
     if row_index + 1 >= df.size:
         return None
-
     cols_numeric = list(filter(lambda x: numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys()))
     if not cols_numeric:
         return None
-
     return cols_numeric
 
 
@@ -61,12 +59,11 @@ def contains_affected(numeric_cols, hxl_indices):
 
 # add preceeding rows if tags are in the middle of the data frame
 def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
-    # traverse beginning from the row ahead of the row of tags
+    # check if the tags are already in the first row
     if i_tagrow <= 0:
-        return df, ii_tagrow
-
+        return df, i_tagrow
+    # traverse beginning from the row ahead of the row of tags
     ii_tagrow = i_tagrow - 1
-
     dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # go up until we reach a cell that look like a column description (not numeric and not nan)
     while ii_tagrow > 0 and (numeric_regex.match(str(dat_val)) or pd.isna(dat_val)):
@@ -74,7 +71,6 @@ def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
         dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # last row containing actual data
     ii_tagrow += 1
-
     if ii_tagrow != i_tagrow:
         df.drop(i_tagrow, axis="index", inplace=True)
         ii_tagrow -= 1  # hxl tags have already been removed
