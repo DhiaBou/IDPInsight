@@ -89,7 +89,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
     const renderChart = () => {
         if (!shouldRenderChart) return null;
         let chartData = [];
-        if (chartType === 'Grouped Bar Chart') {
+        if (chartType === 'Bar Chart') {
             chartData = aggregateData(data, groupByKey, valueKey);
             return <GroupedBarChart data={chartData}/>;
         } else if (chartType === 'Pie Chart') {
