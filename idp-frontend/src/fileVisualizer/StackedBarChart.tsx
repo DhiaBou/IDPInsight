@@ -28,16 +28,18 @@ export const StackedBarChart: React.FC<StackedBarChartProps> = ({data}) => {
     }
 
     return (
-        <BarChart width={800} height={600} data={data}>
-            <CartesianGrid strokeDasharray="3 3"/>
-            <XAxis dataKey="name"/>
-            <YAxis/>
-            <Tooltip/>
-            <Legend/>
-            {stackKeys.map((key, index) => (
-                <Bar key={key} dataKey={key} stackId="a" fill={COLORS[index % COLORS.length]}/>
-            ))}
-        </BarChart>
+        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>
+            <BarChart width={800} height={600} data={data}>
+                <CartesianGrid strokeDasharray="3 3"/>
+                <XAxis dataKey="name"/>
+                <YAxis/>
+                <Tooltip/>
+                <Legend/>
+                {stackKeys.map((key, index) => (
+                    <Bar key={key} dataKey={key} stackId="a" fill={COLORS[index % COLORS.length]}/>
+                ))}
+            </BarChart>
+        </div>
     );
 };
 

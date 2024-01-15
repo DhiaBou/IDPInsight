@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {GroupedBarChart} from './GroupedBarChart';
 import {GroupedPieChart} from './GroupedPieChart';
 import {StackedBarChart} from './StackedBarChart';
@@ -43,6 +43,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
     const [processedData, setProcessedData] = useState<any[]>([])
     const keys = data.length > 0 ? Object.keys(data[0]) : []
     const MAX_STACKED_BAR_GROUP_ITEMS = 50;
+    const MAX_PIE_BAR_GROUP_ITEMS = 100;
 
     const handleChartTypeChange = (newChartType: string) => {
         setChartType(newChartType);
@@ -55,12 +56,11 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
     };
     const handleGenerateChart = () => {
         setErrorMessage('');
+        setShouldRenderChart(true);
         if (chartType === 'Stacked Bar Chart' && stackByKey) {
             if (groupByKey && valueKey && stackByKey) {
                 let newData;
                 newData = aggregateDataForStackedBarChart(data, groupByKey, valueKey, stackByKey);
-                setProcessedData(newData);
-                setShouldRenderChart(true);
                 if (newData && newData.length > MAX_STACKED_BAR_GROUP_ITEMS) {
                     setErrorMessage(`Too many group items. Maximum allowed is ${MAX_STACKED_BAR_GROUP_ITEMS}. Please refine your selection.`);
                     setProcessedData([]);
@@ -68,24 +68,39 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
                     setProcessedData(newData);
                     setErrorMessage('');
                 }
-                if (errorMessage) {
-                    return (
-                        <div style={{color: 'red'}}>
-                            {errorMessage}
-                        </div>
-                    );
-                }
             }
         } else {
             if (groupByKey && valueKey) {
                 let newData;
                 newData = aggregateData(data, groupByKey, valueKey);
-                setProcessedData(newData);
-                setShouldRenderChart(true);
+                if (newData && newData.length > MAX_PIE_BAR_GROUP_ITEMS) {
+                    setErrorMessage(`Too many group items. Maximum allowed is ${MAX_PIE_BAR_GROUP_ITEMS}. Please refine your selection.`);
+                    setProcessedData([]);
+                } else {
+                    setProcessedData(newData);
+                    setErrorMessage('');
+                }
             }
+        }
+        if (errorMessage) {
+            return (
+                <div style={{color: 'red'}}>
+                    {errorMessage}
+                </div>
+            );
         }
     };
 
+    const disabledColorStyle = {
+        backgroundColor: 'grey',
+        border: '1px solid grey',
+        color: 'white',
+    };
+    const enabledColorStyle = {
+        backgroundColor: '#007bff',
+        border: '',
+        color: 'white',
+    };
     const renderChart = () => {
         if (!shouldRenderChart) return null;
         let chartData = [];
@@ -101,9 +116,31 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
         }
         return null;
     };
+
+    const buttonIsEnabled = (chartType === "Stacked Bar Chart" && !!groupByKey && !!valueKey && !!stackByKey) ||
+        ((chartType === "Bar Chart" || chartType === "Pie Chart") && !!groupByKey && !!valueKey);
+
+    useEffect(() => {
+        if (stackByKey === groupByKey || stackByKey === valueKey) {
+            setStackByKey('');
+        }
+        if (valueKey === groupByKey) {
+            setValueKey('');
+        }
+    }, [groupByKey, keys, stackByKey, setStackByKey, valueKey]); // Add dependencies
+
     return (
         <div>
             <div className='row'>
+                <div className='col'>
+                    <Selector
+                        id='chartTypeSelect'
+                        label='Chart type:'
+                        value={chartType}
+                        options={chartTypes}
+                        onChange={(value) => handleChartTypeChange(value)}
+                    />
+                </div>
                 <div className='col'>
                     <Selector
                         id='groupBySelect'
@@ -134,16 +171,10 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
                     </div>
                 )}
                 <div className='col'>
-                    <Selector
-                        id='chartTypeSelect'
-                        label='Chart type:'
-                        value={chartType}
-                        options={chartTypes}
-                        onChange={(value) => handleChartTypeChange(value)}
-                    />
-                </div>
-                <div className='col'>
-                    <button className='btn btn-primary btn-sm my-4' onClick={handleGenerateChart}>
+                    <button className='btn btn-primary btn-sm my-4' onClick={handleGenerateChart}
+                            disabled={!buttonIsEnabled}
+                            style={{padding: '12px 15px', ...buttonIsEnabled ? enabledColorStyle : disabledColorStyle}}
+                    >
                         Generate Chart
                     </button>
                 </div>
