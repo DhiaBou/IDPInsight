@@ -57,7 +57,7 @@ def process_xlsx(bucket_name, file_key):
         new_df = handle_null_values(new_df)
 
         # Convert logs list to a string with line breaks and add to metadata
-        log_str = "\n".join(logs)
+        log_str = ";".join(logs)
         modified_metadata["processing_logs"] = log_str
 
         # Write to new bucket with updated metadata
@@ -83,16 +83,10 @@ def rename_columns(df, logs):
     changes = {k: v for k, v in new_column_names.items() if k in df.columns and k != v}
 
     # Rename the columns that exist
-    df.rename(columns=changes, inplace=True)
+    df.rename(columns={k: v for k, v in new_column_names.items() if k in df.columns}, inplace=True)
 
     # Write changes to log
     for original, new in changes.items():
         logs.append(f"Column renamed from '{original}' to '{new}'")
 
     return df
-
-
-
-
-
-
