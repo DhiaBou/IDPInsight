@@ -37,7 +37,7 @@ def lambda_handler(event, context):
 
 def fetch_datasets(locations, organization, start_last_modified_str):
     # Obtain all datasets by the organization, specified as paramater
-    if organization == "all":
+    if organization == "":
         datasets = Dataset.search_in_hdx(q=IDP_TAG)
     else:
         datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization}")
