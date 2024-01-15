@@ -45,39 +45,50 @@ def process_xlsx(bucket_name, file_key):
         clean_sheet = clean_one_sheet(df)
         if clean_sheet is not None:
             processed_data_dict[f"{sheet_name}_{sheet_count}"] = clean_sheet
-            sheet_count += 0
+            sheet_count += 1
 
-    # Process each DataFrame in the list
+    logs = []
     file_counter = 0
     for sheet_name, df in processed_data_dict.items():
-        original_metadata["sheet_name"] = sheet_name
-        new_df = rename_columns(df=df)
-        new_df = new_df.apply(lambda col: col.fillna(0) if col.dtype.kind in 'biufc' else col.fillna(''))
-        new_df = remove_rows_where_idps_zero(df=new_df)  # Remove rows where 'Affected IDPs Individuals' is 0
+        modified_metadata = original_metadata.copy()
+        modified_metadata["sheet_name"] = sheet_name
 
-        # Write to new bucket with same metadata
+        new_df = rename_columns(df=df, logs=logs)
+        new_df = handle_null_values(new_df)
+
+        # Convert logs list to a string with line breaks and add to metadata
+        log_str = "\n".join(logs)
+        modified_metadata["processing_logs"] = log_str
+
+        # Write to new bucket with updated metadata
         output = io.StringIO()
         new_df.to_csv(output, index=False)
-        new_filename = file_key.replace(".xlsx", f"_processed_{str(file_counter)}.csv")
+        new_filename = file_key.replace(".xlsx", f"_processed_{file_counter}.csv")
         file_counter += 1
         s3.put_object(
             Bucket="devgurus-processed-data",
             Key=new_filename,
             Body=output.getvalue(),
-            Metadata=original_metadata,
+            Metadata=modified_metadata,
         )
 
 
-def rename_columns(df):
+def handle_null_values(new_df):
+    new_df = new_df.apply(lambda col: col.fillna(0) if col.dtype.kind in 'biufc' else col.fillna(''))
+    return new_df
+
+
+def rename_columns(df, logs):
     new_column_names = {col_name: col_name.strip('#').replace('+', '-') for col_name in df.columns.astype(str)}
+    changes = {k: v for k, v in new_column_names.items() if k in df.columns and k != v}
 
     # Rename the columns that exist
-    df.rename(columns={k: v for k, v in new_column_names.items() if k in df.columns}, inplace=True)
+    df.rename(columns=changes, inplace=True)
 
-    return df
+    # Write changes to log
+    for original, new in changes.items():
+        logs.append(f"Column renamed from '{original}' to '{new}'")
+
+    return df, logs
 
 
-def remove_rows_where_idps_zero(df):
-    if "Affected IDPs Individual Count" in df.columns:
-        df = df[df["Affected IDPs Individual Count"] != 0]
-    return df
