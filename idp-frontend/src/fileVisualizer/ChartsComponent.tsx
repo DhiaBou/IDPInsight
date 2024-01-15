@@ -127,7 +127,7 @@ const ChartGenerator: React.FC<ChartGeneratorProps> = ({data}) => {
         if (valueKey === groupByKey) {
             setValueKey('');
         }
-    }, [groupByKey, keys, stackByKey, setStackByKey, valueKey]); // Add dependencies
+    }, [groupByKey, keys, stackByKey, setStackByKey, valueKey]);
 
     return (
         <div>
