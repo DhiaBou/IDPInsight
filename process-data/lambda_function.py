@@ -89,6 +89,10 @@ def rename_columns(df, logs):
     for original, new in changes.items():
         logs.append(f"Column renamed from '{original}' to '{new}'")
 
-    return df, logs
+    return df
+
+
+
+
 
 
