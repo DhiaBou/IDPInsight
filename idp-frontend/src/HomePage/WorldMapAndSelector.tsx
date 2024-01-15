@@ -15,7 +15,6 @@ const MapContainer: React.FC<
    HighlightedWorldMapProps & { selectedCountryId: string; onCountryClick: (countryName: string, id: string) => void }
 > = ({ countryISOs, selectedCountryId, onCountryClick }) => (
    <Card>
-      {' '}
       <Card.Body>
          <ComposableMap projectionConfig={{ rotate: [0, 0, 0], scale: 145 }} height={400}>
             <ZoomableGroup>

@@ -32,8 +32,10 @@ const CountryDatasets: React.FC = () => {
          <div style={{ height: '20px' }} />
          <Card>
             <Card.Body>
+               <Card.Title>{'Available Datasets'}</Card.Title>
+               <strong>Reload available datasets: </strong>
                <Button onClick={fetchData}>Reload</Button>
-               <div style={{ height: '20px' }} />
+               <div style={{ height: '30px' }} />
                {country && Array.isArray(datasets) && (
                   <div>
                      {datasets.map(dataset => (

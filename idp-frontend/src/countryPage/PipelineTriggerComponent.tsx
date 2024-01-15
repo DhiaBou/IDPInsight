@@ -15,7 +15,7 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
    const [isLoading, setIsLoading] = useState(false)
 
    const organizationOptions = [
-      { value: '', label: 'Select' },
+      { value: '', label: '' },
       { value: 'international-organization-for-migration', label: 'International Organization for Migration' }
    ]
 
@@ -40,6 +40,13 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
       } finally {
          setIsLoading(false)
       }
+   }
+   const dismissError = () => {
+      setError(null)
+   }
+
+   const dismissSuccess = () => {
+      setSuccess(false)
    }
 
    return (
@@ -105,8 +112,35 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
                      </button>
                   </div>
                </div>
-               {error && <div className='alert alert-danger mt-3'>{error}</div>}
-               {success && <div className='alert alert-success mt-3'>Refresh triggered successfully!</div>}
+
+               {error && (
+                  <>
+                     <div style={{ height: '20px' }} />
+                     <div className='alert alert-dismissible alert-danger'>
+                        <button
+                           type='button'
+                           className='btn-close'
+                           data-bs-dismiss='alert'
+                           onClick={dismissError}
+                        ></button>
+                        <a> Error triggering the Pipeline </a>
+                     </div>
+                  </>
+               )}
+               {success && (
+                  <>
+                     <div style={{ height: '20px' }} />
+                     <div className='alert alert-dismissible alert-success'>
+                        <button
+                           type='button'
+                           className='btn-close'
+                           data-bs-dismiss='alert'
+                           onClick={dismissSuccess}
+                        ></button>
+                        <a> Refresh triggered successfully! </a>.
+                     </div>
+                  </>
+               )}
             </div>
          </Card.Body>
       </Card>
