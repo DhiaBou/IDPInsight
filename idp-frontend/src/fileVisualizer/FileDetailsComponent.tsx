@@ -1,12 +1,11 @@
 import React from 'react'
 import Card from 'react-bootstrap/Card'
+import formatDate from '../countryPage/utils'
 
 interface FileDetailsComponentProps {
    cdvDownloadUrl: string
    description: string
    lastModified: string
-   id: string
-   source: string
    name: string
    downloadUrl: string
 }
@@ -16,9 +15,7 @@ const FileDetailsComponent: React.FC<FileDetailsComponentProps> = ({
    downloadUrl,
    cdvDownloadUrl,
    description,
-   lastModified,
-   id,
-   source
+   lastModified
 }) => {
    return (
       <Card>
@@ -26,13 +23,7 @@ const FileDetailsComponent: React.FC<FileDetailsComponentProps> = ({
             <Card.Title>{name}</Card.Title>
             <Card.Text>{description}</Card.Text>
             <Card.Footer>
-               <small>Last modified: {lastModified}</small>
-            </Card.Footer>
-            <Card.Footer>
-               <small>Id: {id}</small>
-            </Card.Footer>
-            <Card.Footer>
-               <small>Source: {source}</small>
+               <small>Last modified: {formatDate(lastModified)}</small>
             </Card.Footer>
             <Card.Footer>
                <small>

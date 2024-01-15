@@ -1,85 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Container, ListGroup } from 'react-bootstrap'
+import { Container } from 'react-bootstrap'
 import { ENDPOINTS } from '../utils/apiEndpoints'
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
-import { Button } from 'react-bootstrap'
-
-import { useNavigate } from 'react-router-dom'
-
-// URL to a JSON file containing the geographical features to draw the world map
-const geoUrl = './world.json'
-
-// @ts-ignore
-type HighlightedWorldMapProps = {
-   countryISOs: string[]
-}
-
-type CountryDetailsProps = {
-   countryISO: string
-   countryName: string
-}
-
-const SelectCountryComponent: React.FC<CountryDetailsProps> = ({ countryName, countryISO }) => {
-   const navigate = useNavigate()
-   const navigateToCountryDetails = () => {
-      navigate(`/${countryISO}`)
-   }
-
-   return (
-      <div className='mt-3'>
-         <h4>Selected Country: {countryName}</h4>
-         <Button variant='primary' onClick={navigateToCountryDetails}>
-            details
-         </Button>
-      </div>
-   )
-}
-
-const HighlightedWorldMap: React.FC<HighlightedWorldMapProps> = ({ countryISOs }) => {
-   const [selectedCountry, setSelectedCountry] = useState<string>('')
-   const [selectedCountryId, setSelectedCountryId] = useState<string>('')
-   const handleCountryClick = (countryName: string, id: string) => {
-      setSelectedCountry(countryName)
-      setSelectedCountryId(id)
-   }
-
-   return (
-      <>
-         <SelectCountryComponent countryName={selectedCountry} countryISO={selectedCountryId} />
-         <ComposableMap>
-            <Geographies geography={geoUrl}>
-               {({ geographies }) =>
-                  geographies.map(geo => (
-                     <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        onClick={() => handleCountryClick(geo.properties.name, geo.id)}
-                        style={{
-                           default: {
-                              fill: countryISOs.includes(geo.id)
-                                 ? '#FF5722'
-                                 : geo.id === selectedCountryId
-                                   ? '#1565c0'
-                                   : '#DDD', // Use your chosen colors here
-                              outline: 'none'
-                           },
-                           hover: {
-                              fill: '#42a5f5',
-                              outline: 'none'
-                           },
-                           pressed: {
-                              fill: '#1565c0',
-                              outline: 'none'
-                           }
-                        }}
-                     />
-                  ))
-               }
-            </Geographies>
-         </ComposableMap>
-      </>
-   )
-}
+import { WorldMapAndSelector } from './WorldMapAndSelector'
 
 export const fetchData = async (): Promise<any> => {
    try {
@@ -94,7 +16,7 @@ export const fetchData = async (): Promise<any> => {
       return []
    }
 }
-const MyComponent = () => {
+const HomePageComponent = () => {
    const [data, setData] = useState<any[]>([])
 
    useEffect(() => {
@@ -108,13 +30,13 @@ const MyComponent = () => {
       }
       getData()
    }, [])
-   return <HighlightedWorldMap countryISOs={data} />
+   return <WorldMapAndSelector countryISOs={data} />
 }
 
 const HomePage: React.FC = () => {
    return (
       <Container>
-         <MyComponent />
+         <HomePageComponent />
       </Container>
    )
 }

@@ -86,13 +86,10 @@ class Router:
             metadata_content = self.get_metadata_for_a_dataset(country_isocode, dataset)
             if metadata_content:
                 interesting_metadata = self.extract_metadata(metadata_content)
-                csv_files = self.list_files(
+                csv_files_and_their_date = self.list_files_and_their_date(
                     self.processed_data_bucket, f"tmp/{country_isocode}/{dataset}/", file_extension=".csv"
                 )
-                encoded_csv_file_names = [
-                    urllib.parse.quote_plus(csv_file_name) for csv_file_name in csv_files
-                ]
-                interesting_metadata["csv_files"] = encoded_csv_file_names
+                interesting_metadata["processed_files"] = csv_files_and_their_date
                 dataset_folder_name = urllib.parse.quote_plus(dataset)
                 interesting_metadata["dataset_folder_name"] = dataset_folder_name
                 country_datasets.append(interesting_metadata)
@@ -116,17 +113,23 @@ class Router:
 
         return country_datasets
 
-    def list_files(self, bucket_name, prefix, file_extension=".csv"):
+    def list_files_and_their_date(self, bucket_name, prefix, file_extension=".csv"):
         paginator = self.s3_client.get_paginator("list_objects_v2")
-        file_names = []
+        files_and_their_date = []
 
         for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
             for obj in page.get("Contents", []):
                 if obj["Key"].endswith(file_extension):
                     file_name = obj["Key"][len(prefix) :]
-                    file_names.append(file_name)
+                    # Retrieve the metadata for the object
+                    metadata = self.s3_client.head_object(Bucket=bucket_name, Key=obj["Key"])["Metadata"]
+                    last_modified = metadata.get("last_modified", "")
+                    encoded_file_name = urllib.parse.quote_plus(file_name)
+                    files_and_their_date.append(
+                        {"file_name": encoded_file_name, "last_modified": last_modified}
+                    )
 
-        return file_names
+        return files_and_their_date
 
     def read_json_file(self, bucket_name, file_key):
         try:

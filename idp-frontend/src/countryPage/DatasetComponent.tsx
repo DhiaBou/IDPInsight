@@ -4,16 +4,33 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import Accordion from 'react-bootstrap/Accordion'
 import { useAccordionButton } from 'react-bootstrap/AccordionButton'
 import { Link } from 'react-router-dom'
+import formatDate from './utils'
+interface ProcessedFile {
+   file_name: string
+   last_modified: string
+}
+
 interface DatasetProps {
    country: string
    datasetFolderName: string
    title: string
    description: string
    lastModified: string
-   id: string
    source: string
-   fileNames: string[]
+   processedFiles: ProcessedFile[]
 }
+const FileItem: React.FC<ProcessedFile & { country: string; datasetFolderName: string }> = ({
+   file_name,
+   last_modified,
+   country,
+   datasetFolderName
+}) => (
+   <ListGroup.Item style={{ fontSize: '0.75rem' }}>
+      Date: {formatDate(last_modified)}
+      <br />
+      File: <Link to={`/${country}/${datasetFolderName}/${file_name}`}>{file_name}</Link>
+   </ListGroup.Item>
+)
 
 const DatasetComponent: React.FC<DatasetProps> = ({
    datasetFolderName,
@@ -21,9 +38,8 @@ const DatasetComponent: React.FC<DatasetProps> = ({
    title,
    description,
    lastModified,
-   id,
    source,
-   fileNames
+   processedFiles
 }) => {
    const [activeKey, setActiveKey] = useState('')
 
@@ -56,10 +72,7 @@ const DatasetComponent: React.FC<DatasetProps> = ({
             <Card.Title>{title}</Card.Title>
             <Card.Text>{description}</Card.Text>
             <Card.Footer>
-               <small>Last modified: {lastModified}</small>
-            </Card.Footer>
-            <Card.Footer>
-               <small>Id: {id}</small>
+               <small>Last modified: {formatDate(lastModified)}</small>
             </Card.Footer>
             <Card.Footer>
                <small>Source: {source}</small>
@@ -72,11 +85,12 @@ const DatasetComponent: React.FC<DatasetProps> = ({
                </Card.Footer>
                <Accordion.Collapse eventKey='0'>
                   <ListGroup variant='flush'>
-                     {fileNames.map((fileName, index) => (
-                        <Link to={`/${country}/${datasetFolderName}/${fileName}`} key={index}>
-                           <ListGroup.Item style={{ fontSize: '0.75rem' }}>{fileName}</ListGroup.Item>
-                        </Link>
-                     ))}
+                     {processedFiles
+                        // @ts-ignore
+                        .sort((a, b) => new Date(b.last_modified) - new Date(a.last_modified))
+                        .map((file, index) => (
+                           <FileItem key={index} {...file} country={country} datasetFolderName={datasetFolderName} />
+                        ))}
                   </ListGroup>
                </Accordion.Collapse>
             </Accordion>
