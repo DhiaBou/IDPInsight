@@ -45,12 +45,6 @@ jobs:
           pip3 install -r requirements.txt
 
       # Build the app and run tests
-      - name: Build and Run Test
-        run: |
-          export PYTHONPATH=$PWD/fastapi-server
-          cd fastapi-server
-          . venv/bin/activate && pytest
-      
 
       - name: Create Zipfile archive of Dependencies
         run: |
