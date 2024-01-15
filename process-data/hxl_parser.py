@@ -30,10 +30,12 @@ def process_hxl_files(file_path):
 
 
 # check if the dataset contains aleast one row with numeric values
-def numeric_row(df, row_index, cols):
-    if row_index + 1 >= df.size:
+def numeric_row(df, i_row, cols):
+    ii_row = i_row + 1 if i_row + 1 < len(df.index) else i_row - 1
+    if ii_row < 0:
         return None
-    cols_numeric = list(filter(lambda x: numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys()))
+    
+    cols_numeric = list(filter(lambda x: numeric_regex.match(str(df[x].loc[ii_row])), cols.keys()))
     if not cols_numeric:
         return None
     return cols_numeric
