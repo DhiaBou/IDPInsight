@@ -15,16 +15,13 @@ export const GroupedPieChart: React.FC<PieChartProps> = ({data}) => {
     const LABEL_THRESHOLD = 0.02;
 
     return (
-        <PieChart width={1200} height={800}>
+        <PieChart width={1200} height={500}>
             <Pie
                 data={data}
-                cx={350}
-                cy={300}
+                cx={375}
+                cy={225}
                 labelLine={false}
-                label={({
-                            name,
-                            percent
-                        }) => percent > LABEL_THRESHOLD ? `${name} (${(percent * 100).toFixed(0)}%)` : null}
+                label={({name, percent}) => percent > LABEL_THRESHOLD ? `${name} (${(percent * 100).toFixed(0)}%)` : null}
                 outerRadius={200}
                 fill="#8884d8"
                 dataKey="value"
