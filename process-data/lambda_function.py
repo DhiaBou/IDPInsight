@@ -52,7 +52,7 @@ def process_xlsx(bucket_name, file_key):
     for sheet_name, df in processed_data_dict.items():
         original_metadata["sheet_name"] = sheet_name
         new_df = rename_columns(df=df)
-        new_df.dropna(inplace=True)  # drop null values
+        new_df = new_df.apply(lambda col: col.fillna(0) if col.dtype.kind in 'biufc' else col.fillna(''))
         new_df = remove_rows_where_idps_zero(df=new_df)  # Remove rows where 'Affected IDPs Individuals' is 0
 
         # Write to new bucket with same metadata
