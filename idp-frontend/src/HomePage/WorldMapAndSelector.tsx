@@ -46,15 +46,18 @@ export const WorldMapAndSelector: React.FC<HighlightedWorldMapProps> = ({ countr
                </Dropdown.Toggle>
 
                <Dropdown.Menu style={{ maxHeight: '15em', overflowY: 'auto', borderRadius: '5px' }}>
-                  {geographies.map((geo, index) => (
-                     <React.Fragment key={geo.id}>
-                        <Dropdown.Item eventKey={geo.id} style={{ fontSize: '16px' }}>
-                           {geo.properties.name}
-                        </Dropdown.Item>
-                     </React.Fragment>
-                  ))}
+                  {geographies
+                     .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
+                     .map((geo, index) => (
+                        <React.Fragment key={geo.id}>
+                           <Dropdown.Item eventKey={geo.id} style={{ fontSize: '16px' }}>
+                              {geo.properties.name}
+                           </Dropdown.Item>
+                        </React.Fragment>
+                     ))}
                </Dropdown.Menu>
-            </Dropdown>{' '}
+            </Dropdown>
+
             <div />
             <Button
                variant='primary'
@@ -64,7 +67,8 @@ export const WorldMapAndSelector: React.FC<HighlightedWorldMapProps> = ({ countr
                   borderRadius: '5px',
                   backgroundColor: selectedCountry ? '#007bff' : 'grey', // Assuming 'selectedCountry' holds the selected country state
                   pointerEvents: selectedCountry ? 'auto' : 'none', // Disables click events when the button is greyed out
-                  opacity: selectedCountry ? 1 : 0.5 // Makes the button look disabled
+                  opacity: selectedCountry ? 1 : 0.5, // Makes the button look disabled
+                  border: selectedCountry ? '' : '1px solid grey' // Greys out the border when the button is not active
                }}
             >
                Details
