@@ -35,24 +35,34 @@ def lambda_handler(event, context):
     }
 
 
+def parse_date(date_str, formats):
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
 def fetch_datasets(locations, organization, start_last_modified_str):
-    # Obtain all datasets by the organization, specified as paramater
+    # Obtain all datasets by the organization, specified as parameter
     if organization == "":
         datasets = Dataset.search_in_hdx(q=IDP_TAG)
     else:
         datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization}")
 
+    date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"]
+
     for dataset in datasets:
         last_modified_str = dataset.get("last_modified", "")
-        last_modified = datetime.strptime(last_modified_str, "%Y-%m-%dT%H:%M:%S.%f") if last_modified_str else None
-        start_last_modified = datetime.strptime(start_last_modified_str, "%Y-%m-%d") if start_last_modified_str != "" else None
+        last_modified = parse_date(last_modified_str, date_formats)
 
-        if last_modified == None or start_last_modified == None or last_modified >= start_last_modified:
+        start_last_modified = parse_date(start_last_modified_str, date_formats)
+
+        if last_modified is None or start_last_modified is None or last_modified >= start_last_modified:
             dataset_id = dataset.get_name_or_id(False)
             dataset_name = dataset.get_name_or_id(True)
             dataset_tags = dataset.get_tags()
             dataset_locations = dataset.get_location_iso3s()
-        
 
             if IDP_TAG in dataset_tags and "hxl" in dataset_tags:
                 if check_locations(locations, dataset_locations):
