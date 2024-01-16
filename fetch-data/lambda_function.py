@@ -1,10 +1,9 @@
 import json
-import logging
 import os
+from datetime import datetime
 
 import boto3
 import requests
-from datetime import datetime
 from hdx.api.configuration import Configuration, ConfigurationError
 from hdx.data.dataset import Dataset
 from hdx.utilities.easy_logging import setup_logging
@@ -17,7 +16,6 @@ IDP_TAG = "internally displaced persons-idp"
 
 
 def lambda_handler(event, context):
-    logging.basicConfig(level=logging.INFO)
     setup_logging()
     path_parameters = event.get("pathParameters", {})
     location = event["location"]
@@ -27,7 +25,11 @@ def lambda_handler(event, context):
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
         pass
-    fetch_datasets([location], organization, start_last_modified)
+    try:
+        fetch_datasets(location, organization, start_last_modified)
+    except Exception as e:
+        print('Error happened')
+        print(e)
 
     return {
         "statusCode": 200,
@@ -43,12 +45,12 @@ def parse_date(date_str, formats):
             continue
     return None
 
-def fetch_datasets(locations, organization, start_last_modified_str):
+def fetch_datasets(location, organization, start_last_modified_str):
     # Obtain all datasets by the organization, specified as parameter
     if organization == "":
-        datasets = Dataset.search_in_hdx(q=IDP_TAG)
+        datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"country_iso3:{location}")
     else:
-        datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization}")
+        datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization} AND country_iso3:{location}")
 
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"]
 
@@ -65,8 +67,7 @@ def fetch_datasets(locations, organization, start_last_modified_str):
             dataset_locations = dataset.get_location_iso3s()
 
             if IDP_TAG in dataset_tags and "hxl" in dataset_tags:
-                if check_locations(locations, dataset_locations):
-                    download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
+                download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
 
 
 def check_locations(locations, dataset_locations):
@@ -77,10 +78,10 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
     dataset = Dataset.read_from_hdx(dataset_id)
     dataset_metadata = dataset.get_dataset_dict()
     if dataset_metadata["archived"]:
-        logging.info(f"Dataset {dataset.get_name_or_id(True)} is archived, skipping...")
+        print(f"Dataset {dataset.get_name_or_id(True)} is archived, skipping...")
         return
 
-    logging.info(f"Downloading ressources for {dataset_metadata['name']}...")
+    print(f"Downloading ressources for {dataset_metadata['name']}...")
     resources = Dataset.get_all_resources([dataset])
 
     # Assuming each dataset is associated with one location
