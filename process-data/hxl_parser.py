@@ -30,14 +30,20 @@ def process_hxl_files(file_path):
 
 
 # check if the dataset contains aleast one row with numeric values
-def numeric_row(df, row_index, cols):
-    if row_index + 1 >= df.size:
+def numeric_row(df, i_row, cols):
+    ii_row = i_row + 1 if i_row + 1 < len(df.index) else i_row - 1
+    if ii_row < 0:
         return None
+    
+    cols_numeric = list(
+        filter(
+            lambda x: numeric_regex.match(str(df[x].loc[ii_row])),
+            cols.keys()
+        )
+    )   
 
-    cols_numeric = list(filter(lambda x: numeric_regex.match(str(df[x].loc[row_index + 1])), cols.keys()))
     if not cols_numeric:
         return None
-
     return cols_numeric
 
 
@@ -61,6 +67,9 @@ def contains_affected(numeric_cols, hxl_indices):
 
 # add preceeding rows if tags are in the middle of the data frame
 def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
+    # check if the tags are already in the first row
+    if i_tagrow <= 0:
+        return df, i_tagrow
     # traverse beginning from the row ahead of the row of tags
     ii_tagrow = i_tagrow - 1
     dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
@@ -70,7 +79,6 @@ def add_preceeding_rows(df, aff_ind, i_tagrow, numeric_columns):
         dat_val = df[numeric_columns[aff_ind]].loc[ii_tagrow]
     # last row containing actual data
     ii_tagrow += 1
-
     if ii_tagrow != i_tagrow:
         df.drop(i_tagrow, axis="index", inplace=True)
         ii_tagrow -= 1  # hxl tags have already been removed
@@ -96,14 +104,13 @@ def adjust_date_format(df):
 def clean_current_sheet(sheet_data, hxl_columns, i):
     hxl_indices = {index: header for index, header in hxl_columns}
     numeric_columns = numeric_row(sheet_data, i, hxl_indices)
-    if numeric_columns is None:
-        return None
+    
+    if not numeric_columns is None:
+        # use affected column is possible
+        aff_ind = contains_affected(numeric_columns, hxl_indices)
+        aff_ind = 0 if aff_ind is None else aff_ind
+        sheet_data, i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
 
-    # use affected column is possible
-    aff_ind = contains_affected(numeric_columns, hxl_indices)
-    aff_ind = 0 if aff_ind is None else aff_ind
-
-    sheet_data, i = add_preceeding_rows(sheet_data, aff_ind, i, numeric_columns)
     desired_columns = pd.Index(hxl_indices.keys())
     processed_data = sheet_data[desired_columns].drop(index=range(i + 1))
     processed_data.rename(columns=hxl_indices, inplace=True)
