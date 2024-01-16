@@ -35,7 +35,13 @@ def numeric_row(df, i_row, cols):
     if ii_row < 0:
         return None
     
-    cols_numeric = list(filter(lambda x: numeric_regex.match(str(df[x].loc[ii_row])), cols.keys()))
+    cols_numeric = list(
+        filter(
+            lambda x: numeric_regex.match(str(df[x].loc[ii_row])),
+            cols.keys()
+        )
+    )   
+
     if not cols_numeric:
         return None
     return cols_numeric
