@@ -16,7 +16,7 @@ const DatasetOfAFileComponent: React.FC<DatasetOfAFileComponentProps> = ({
    source
 }) => {
    return (
-      <Card>
+      <Card style={{ backgroundColor: '#f5f5f5' }}>
          <Card.Body>
             <Card.Title>{title}</Card.Title>
             <Card.Text>{description}</Card.Text>
