@@ -67,7 +67,7 @@ const DatasetComponent: React.FC<DatasetProps> = ({
    }
 
    return (
-      <Card>
+      <Card style={{ backgroundColor: '#f5f5f5' }}>
          <Card.Body>
             <Card.Title>{title}</Card.Title>
             <Card.Text>{description}</Card.Text>

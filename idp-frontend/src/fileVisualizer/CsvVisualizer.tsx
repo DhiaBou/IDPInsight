@@ -83,7 +83,7 @@ const CsvTable: React.FC<{ data: CsvRow[] }> = ({ data }) => {
    )
 }
 const CsvVisualizer: React.FC<{ url: string }> = ({ url }) => (
-   <Card>
+   <Card style={{ backgroundColor: '#f5f5f5' }}>
       <Card.Body>
          <CsvDataProvider url={url}>
             {(data, error, loading) => {
