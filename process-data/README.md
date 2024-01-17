@@ -38,3 +38,6 @@ During the actually processing we remove rows that do not specify any informatio
 
 ## Further Challenges
 The cleaning and renaming functionality we implemented for our mvp is by no means exhaustive. Extending and enhancing this is the main challenge for the future. As additional features user-driven column renaming or text recognition are interesting. Addtionally incorporating data addtional of additional relief agencies like the [UNHCR](https://www.unhcr.org/) may enhanced the quality of our application.
+
+## Tests
+To test this module, run the command ```pytest``` in the root of this folder .
