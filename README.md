@@ -24,23 +24,4 @@ IDP Insight automates the entire process, from data collection, to data processi
 - [.github/workflows](.github/workflows/main.yml):
 Each folder in this repository contains its own README for more specific details. Please refer to these for in-depth information about each component of the application.
 
-## Glossary
-
-**WFP (World Food Programme):**  
-Non-profit organization with the primary objective to end world hunger. Responsible for receiving donations, procuring food, and distributing food and financial resources to countries in need.
-
-**Food Insecurity:**  
-An inability of a person to meet their food needs. Based on the food insecurity degree, one differentiates between 5 phases (Integrated Food Security Phase Classification).
-
-**IDP (Internally Displaced Person):**  
-A person forced to leave their home and flee to another part of their country due to conflicts of various types or natural disasters.
-
-**Refugee:**  
-A person forced to leave their country due to conflicts of various types or natural disasters.
-
-**HXL (Human Exchange Language):**  
-Uniform standard to name columns of datasets.
-
-**HDX (Humanitarian Data Exchange):**  
-Major platform distributing human data of various relief organizations as Markdown.
 

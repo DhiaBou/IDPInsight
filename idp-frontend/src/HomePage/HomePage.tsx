@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Container } from 'react-bootstrap'
+import { Col, Container, Row } from 'react-bootstrap'
 import { ENDPOINTS } from '../utils/apiEndpoints'
 import { WorldMapAndSelector } from './WorldMapAndSelector'
-
+import logo from './logo.png'
 export const fetchData = async (): Promise<any> => {
    try {
       const response = await fetch(ENDPOINTS.getCountries)
@@ -36,6 +36,15 @@ const HomePageComponent = () => {
 const HomePage: React.FC = () => {
    return (
       <Container>
+         <Row className='bg-dark text-white text-center py-4'>
+            <Col>
+               <img src={logo} alt='Logo' style={{ width: '300px' }} />
+               <div style={{ height: '20px' }} />
+               <p style={{ fontFamily: 'Roboto' }}>Automated Data Solution for Internally Displaced Persons</p>
+            </Col>
+         </Row>
+         <div style={{ height: '50px' }} />
+
          <HomePageComponent />
       </Container>
    )

@@ -15,19 +15,20 @@ S3_RESOURCE = boto3.resource("s3")
 IDP_TAG = "internally displaced persons-idp"
 
 
-
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO)
     setup_logging()
     path_parameters = event.get("pathParameters", {})
     location = event["location"]
-    organization = event["organization"]
-    start_last_modified = event["startlastmodified"]
+    organization = event.get("organization", "")
+    if organization == "all":
+        organization = ""
+    start_last_modified = event.get("startlastmodified", "")
     try:
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
         pass
-    fetch_datasets([location], organization, start_last_modified)
+    fetch_datasets(location, organization, start_last_modified)
 
     return {
         "statusCode": 200,
@@ -43,14 +44,12 @@ def parse_date(date_str, formats):
             continue
     return None
 
-def fetch_datasets(locations, organization, start_last_modified_str):
-    # Obtain all datasets by the organization, specified as parameter
-    if organization == "":
-        datasets = Dataset.search_in_hdx(q=IDP_TAG)
-    else:
-        datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization}")
 
-    date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"]
+def fetch_datasets(country_iso, organization, start_last_modified_str):
+    # Obtain all datasets by the organization, specified as parameter
+    datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"groups:{country_iso.lower()}")
+
+    date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", '%Y-%m-%d']
 
     for dataset in datasets:
         last_modified_str = dataset.get("last_modified", "")
@@ -62,18 +61,20 @@ def fetch_datasets(locations, organization, start_last_modified_str):
             dataset_id = dataset.get_name_or_id(False)
             dataset_name = dataset.get_name_or_id(True)
             dataset_tags = dataset.get_tags()
-            dataset_locations = dataset.get_location_iso3s()
-
-            if IDP_TAG in dataset_tags and "hxl" in dataset_tags:
-                if check_locations(locations, dataset_locations):
-                    download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
+            dataset_organization_name = dataset.get("organization", {}).get("name", "")
+            if (
+                IDP_TAG in dataset_tags
+                and "hxl" in dataset_tags
+                and (organization == "" or dataset_organization_name == organization)
+            ):
+                download_all_resources_for_dataset(dataset_id, dataset_name, country_iso)
 
 
 def check_locations(locations, dataset_locations):
     return all(loc in locations for loc in dataset_locations)
 
 
-def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations):
+def download_all_resources_for_dataset(dataset_id, dataset_name, location):
     dataset = Dataset.read_from_hdx(dataset_id)
     dataset_metadata = dataset.get_dataset_dict()
     if dataset_metadata["archived"]:
@@ -82,10 +83,6 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
 
     logging.info(f"Downloading ressources for {dataset_metadata['name']}...")
     resources = Dataset.get_all_resources([dataset])
-
-    # Assuming each dataset is associated with one location
-    # TODO: Consider datasets with multiple locations
-    location = dataset_locations[0]
 
     # Data stored under /tmp/country/dataset_name
     path = "tmp/" + location + "/" + dataset_id.replace("/", "_") + "__" + dataset_name.replace("/", "_")
@@ -118,4 +115,3 @@ def write_dataset_metadata(dataset_metadata, path):
     dataset_metadata_filename = "metadata.json"
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
     S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata_json)
-
