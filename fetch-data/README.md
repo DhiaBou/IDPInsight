@@ -5,8 +5,8 @@ This AWS Lambda function is designed to download datasets related to internally 
 
 ## Functionality
 - **Event Triggered**: The function starts upon receiving an event containing `location`, `organization` and `startlastmodified` parameters.
-- **Data Fetching**: Searches for datasets on HDX related to 'internally displaced persons-idp' under the specified organization.
-- **Data Filtering**: Filters datasets based on location, tags ('internally displaced persons-idp' and 'hxl') and last modified date (>= startlastmodified).
+- **Data Fetching**: Searches for datasets on HDX related to 'internally displaced persons-idp' in the specified location.
+- **Data Filtering**: Filters datasets based on organization, tags ('internally displaced persons-idp' and 'hxl') and last modification date.
 - **Data Download and Upload**: Downloads the datasets from HDX and uploads them to a specified S3 bucket.
 
 ## Requirements
