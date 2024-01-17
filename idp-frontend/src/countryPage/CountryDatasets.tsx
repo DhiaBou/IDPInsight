@@ -28,7 +28,6 @@ const CountryDatasets: React.FC = () => {
 
    return (
       <div>
-         {country && <PipelineTriggerComponent country={country} />}
          <div style={{ height: '20px' }} />
          <Card>
             <Card.Body>

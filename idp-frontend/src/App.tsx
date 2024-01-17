@@ -6,7 +6,8 @@ import { Container } from 'react-bootstrap'
 import CountryDatasets from './countryPage/CountryDatasets'
 import FileVisualizer from './fileVisualizer/FileVisualizer'
 import Footer from './Theme/Footer'
-import './App.css' // Assuming your CSS is in App.css
+import './App.css'
+import CountryPage from './countryPage/CountryPage'
 
 const App: React.FC = () => {
    return (
@@ -17,7 +18,7 @@ const App: React.FC = () => {
                <Container>
                   <Routes>
                      <Route path='/' element={<HomePage />} />
-                     <Route path='/:country' element={<CountryDatasets />} />
+                     <Route path='/:country' element={<CountryPage />} />
                      <Route path='/:country/:dataset/:file' element={<FileVisualizer />} />
                   </Routes>
                </Container>
