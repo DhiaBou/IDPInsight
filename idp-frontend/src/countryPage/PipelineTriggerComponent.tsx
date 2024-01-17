@@ -155,7 +155,7 @@ const PipelineTriggerComponent: React.FC = () => {
                               {' Loading...'}
                            </>
                         ) : (
-                           'Trigger Pipeline'
+                           'Get Datasets'
                         )}
                      </button>
                   </div>
