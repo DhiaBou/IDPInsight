@@ -47,7 +47,7 @@ def parse_date(date_str, formats):
 
 def fetch_datasets(country_iso, organization, start_last_modified_str):
     # Obtain all datasets by the organization, specified as parameter
-    datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"groups:{country_iso}")
+    datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"groups:{country_iso.lower()}")
 
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"]
 
