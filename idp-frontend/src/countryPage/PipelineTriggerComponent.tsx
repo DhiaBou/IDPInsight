@@ -1,10 +1,50 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { ENDPOINTS } from '../utils/apiEndpoints'
 import Card from 'react-bootstrap/Card'
 
 interface PipelineTriggerComponentProps {
    country: string
+}
+
+function hasTags(tags: any[], requiredTags: any[]) {
+   return requiredTags.every(requiredTag => tags.some(tag => tag.display_name === requiredTag))
+}
+
+async function findOrganizations(country: string) {
+   const query = 'internally displaced persons-idp'
+   const filterQuery = `groups:${country}`
+   const url = `https://data.humdata.org/api/action/package_search?q=${query}&fq=${filterQuery}&start=0&rows=1000`
+
+   try {
+      const response = await fetch(url)
+      if (!response.ok) {
+         console.error('Network response was not ok')
+         return []
+      }
+
+      const data = await response.json()
+      const datasets = data.result.results
+      const requiredTags = ['hxl', 'internally displaced persons-idp']
+
+      const organizations = new Set()
+
+      for (const dataset of datasets) {
+         if (hasTags(dataset.tags, requiredTags)) {
+            organizations.add(dataset.organization.name)
+         }
+      }
+
+      let organizationsArray = Array.from(organizations)
+      if (organizationsArray.length > 0) {
+         organizationsArray = ['all', ...organizationsArray]
+      }
+
+      return organizationsArray
+   } catch (error) {
+      console.error('There was a problem with the fetch operation:', error)
+      return []
+   }
 }
 
 const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ country }) => {
@@ -14,10 +54,16 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
    const [success, setSuccess] = useState(false)
    const [isLoading, setIsLoading] = useState(false)
 
-   const organizationOptions = [
-      { value: '', label: '' },
-      { value: 'international-organization-for-migration', label: 'International Organization for Migration' }
-   ]
+   const [organizations, setOrganizations] = useState([])
+   useEffect(() => {
+      const loadOrganizations = async () => {
+         const orgs = await findOrganizations(country.toLowerCase())
+         // @ts-ignore
+         setOrganizations(orgs)
+      }
+
+      loadOrganizations()
+   }, [country])
 
    const handleOrganizationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedOrganization(event.target.value)
@@ -76,9 +122,9 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
                         value={selectedOrganization}
                         onChange={handleOrganizationChange}
                      >
-                        {organizationOptions.map(option => (
-                           <option key={option.value} value={option.value}>
-                              {option.label}
+                        {organizations.map(option => (
+                           <option key={option} value={option}>
+                              {option}
                            </option>
                         ))}
                      </select>
