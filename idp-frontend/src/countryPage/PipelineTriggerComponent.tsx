@@ -76,7 +76,8 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
    const triggerRefresh = async () => {
       try {
          setIsLoading(true)
-         const endpoint = `${ENDPOINTS.triggerRefresh}/${country}?organization=${selectedOrganization}&startlastmodified=${selectedDate}`
+         const organization = selectedOrganization=='all'?'':selectedOrganization
+         const endpoint = `${ENDPOINTS.triggerRefresh}/${country}?organization=${organization}&startlastmodified=${selectedDate}`
          await axios.get(endpoint)
          setSuccess(true)
          setError(null)
