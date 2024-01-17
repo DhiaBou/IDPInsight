@@ -16,12 +16,15 @@ IDP Insight automates the entire process, from data collection, to data processi
 - **Continuous Updates**: Regularly updates data to ensure the latest information is always available.
 
 ## Repository Structure
-- [fetch-data](fetch-data/README.md): Python script deployed to AWS Lambda (`devgurus-fetch-data`). It serves to collect raw data from different sources hosted on HDX and store it in `devgurus-raw-data`.
+- [fetch-data](fetch-data/README.md): Python script deployed to AWS Lambda (`devgurus-fetch-data`). It serves to collect raw data from different sources hosted on HDX and store it in `devgurus-raw-data`. Please refer to [serverless.yml](fetch-data/serverless.yml) for the deployment of this lambda function.
 - [idp-frontend](idp-frontend/README.md): The front-end application, built with React, deployed to `devgurus-frontend-deployment-bucket`.
-- [process-data](process-data/README.md): Python script in AWS Lambda (`devgurus-process-data`) triggered by uploads to `devgurus-raw-data`. Processes raw data into clean CSV files and stores them in `devgurus-processed-data`.
-- [serverless-api](serverless-api/README.md): Python-based serverless API deployed to `devgurus-serverless-api`. Acts as an interface between data buckets and the frontend, providing access to datasets, raw, and processed files.
-- `.github/workflows`: Contains GitHub Actions workflows for deploying to AWS.
-- [.github/workflows](.github/workflows/main.yml):
+- [process-data](process-data/README.md): Python script in AWS Lambda (`devgurus-process-data`) triggered by uploads to `devgurus-raw-data`. Processes raw data into clean CSV files and stores them in `devgurus-processed-data`.  Please refer to [serverless.yml](process-data/serverless.yml) for the deployment of this lambda function.
+- [serverless-api](serverless-api/README.md): Python-based serverless API deployed to `devgurus-serverless-api`. Acts as an interface between data buckets and the frontend, providing access to datasets, raw, and processed files. Please refer to [serverless.yml](serverless-api/serverless.yml) for the deployment of this lambda function.
+- [.github/workflows](.github/workflows/main.yml): Contains GitHub Actions workflows for deploying to AWS.
+
+
 Each folder in this repository contains its own README for more specific details. Please refer to these for in-depth information about each component of the application.
 
+## Artifacts:
+Please refer to [artifacts](artifacts/README.md) for the artifacts for this project.
 
