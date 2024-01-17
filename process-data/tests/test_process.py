@@ -1,7 +1,6 @@
 import pandas as pd
 import importlib
-
-parser = importlib.import_module( "..hxl_parser", "process-data.hxl_parser")
+import hxl_parser as parser
 
 def test_fill():
     test_file = pd.read_excel("tests/test-data/test_fill.xlsx", sheet_name = "Summary Analysis", header=None)
