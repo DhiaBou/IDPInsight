@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { ENDPOINTS } from '../utils/apiEndpoints'
 import Card from 'react-bootstrap/Card'
-
-interface PipelineTriggerComponentProps {
-   country: string
-}
+import { useParams } from 'react-router-dom'
 
 function hasTags(tags: any[], requiredTags: any[]) {
    return requiredTags.every(requiredTag => tags.some(tag => tag.display_name === requiredTag))
@@ -47,7 +44,9 @@ async function findOrganizations(country: string) {
    }
 }
 
-const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ country }) => {
+const PipelineTriggerComponent: React.FC = () => {
+   const { country } = useParams()
+
    const [selectedOrganization, setSelectedOrganization] = useState('')
    const [selectedDate, setSelectedDate] = useState('')
    const [error, setError] = useState(null)
@@ -57,9 +56,11 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
    const [organizations, setOrganizations] = useState([])
    useEffect(() => {
       const loadOrganizations = async () => {
-         const orgs = await findOrganizations(country.toLowerCase())
-         // @ts-ignore
-         setOrganizations(orgs)
+         if (country) {
+            const orgs = await findOrganizations(country.toLowerCase())
+            // @ts-ignore
+            setOrganizations(orgs)
+         }
       }
 
       loadOrganizations()
