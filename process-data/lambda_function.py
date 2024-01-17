@@ -16,6 +16,7 @@ def lambda_handler(event, context):
     bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
     file_key = urllib.parse.unquote_plus(event["Records"][0]["s3"]["object"]["key"])
 
+    # Choose processing based on file type
     if file_key.endswith(".json"):
         process_json(bucket_name, file_key)
     elif file_key.endswith(".xlsx"):
@@ -27,6 +28,7 @@ def lambda_handler(event, context):
 
 
 def process_json(bucket_name, file_key):
+    # Read JSON file and upload to destination bucket
     response = s3.get_object(Bucket=bucket_name, Key=file_key)
     file_content = response["Body"].read()
     destination_bucket = "devgurus-processed-data"
@@ -67,16 +69,17 @@ def process_xlsx(bucket_name, file_key):
             Metadata=original_metadata,
         )
 
+
 def process_csv(bucket_name, file_key):
     # Read the CSV file and its metadata
-    s3 = boto3.client('s3')
+    s3 = boto3.client("s3")
     obj = s3.get_object(Bucket=bucket_name, Key=file_key)
     original_metadata = obj.get("Metadata", {})
-    csv_data = io.StringIO(obj["Body"].read().decode('utf-8'))
-    df = pd.read_csv(csv_data, header= None)
+    csv_data = io.StringIO(obj["Body"].read().decode("utf-8"))
+    df = pd.read_csv(csv_data, header=None)
 
     # Clean the DataFrame
-    clean_df = clean_one_sheet(df)  
+    clean_df = clean_one_sheet(df)
     if clean_df is not None:
         new_df = post_process_df(clean_df)
 
@@ -91,14 +94,20 @@ def process_csv(bucket_name, file_key):
             Metadata=original_metadata,
         )
 
+
 def post_process_df(clean_df):
-    new_df = rename_columns(df=clean_df)  
-    new_df = new_df.apply(lambda col: col.fillna(0) if col.dtype.kind in 'biufc' else col.fillna(''))
-    new_df = remove_rows_where_idps_zero(df=new_df) 
+    # Perform post-processing on the DataFrame
+    new_df = rename_columns(df=clean_df)
+    new_df = new_df.apply(lambda col: col.fillna(0) if col.dtype.kind in "biufc" else col.fillna(""))
+    new_df = remove_rows_where_idps_zero(df=new_df)
     return new_df
 
+
 def rename_columns(df):
-    new_column_names = {col_name: col_name.strip('#').replace('+', '-') for col_name in df.columns.astype(str)}
+    # Rename columns in the DataFrame
+    new_column_names = {
+        col_name: col_name.strip("#").replace("+", "-") for col_name in df.columns.astype(str)
+    }
 
     # Rename the columns that exist
     df.rename(columns={k: v for k, v in new_column_names.items() if k in df.columns}, inplace=True)
@@ -107,6 +116,7 @@ def rename_columns(df):
 
 
 def remove_rows_where_idps_zero(df):
+    # Remove rows where "Affected IDPs Individual Count" is zero
     if "Affected IDPs Individual Count" in df.columns:
         df = df[df["Affected IDPs Individual Count"] != 0]
     return df
