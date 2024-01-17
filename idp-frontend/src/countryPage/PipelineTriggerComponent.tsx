@@ -76,7 +76,7 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
    const triggerRefresh = async () => {
       try {
          setIsLoading(true)
-         const organization = selectedOrganization=='all'?'':selectedOrganization
+         const organization = selectedOrganization == 'all' ? '' : selectedOrganization
          const endpoint = `${ENDPOINTS.triggerRefresh}/${country}?organization=${organization}&startlastmodified=${selectedDate}`
          await axios.get(endpoint)
          setSuccess(true)
@@ -184,7 +184,10 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
                            data-bs-dismiss='alert'
                            onClick={dismissSuccess}
                         ></button>
-                        <a> Refresh triggered successfully! </a>.
+                        <strong> Refresh triggered successfully! </strong> <br />
+                        <a>
+                           Please wait a few moments and then reload. If no datasets appeared, try adjusting the date.
+                        </a>
                      </div>
                   </>
                )}
