@@ -16,9 +16,11 @@ IDP_TAG = "internally displaced persons-idp"
 
 
 def lambda_handler(event, context):
+    # Configure logging
     logging.basicConfig(level=logging.INFO)
     setup_logging()
-    path_parameters = event.get("pathParameters", {})
+
+    # Configure logging
     location = event["location"]
     organization = event.get("organization", "")
     if organization == "all":
@@ -28,6 +30,8 @@ def lambda_handler(event, context):
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
         pass
+
+    # Fetch datasets based on parameters
     fetch_datasets(location, organization, start_last_modified)
 
     return {
@@ -37,6 +41,7 @@ def lambda_handler(event, context):
 
 
 def parse_date(date_str, formats):
+    # Parse date string with multiple formats
     for fmt in formats:
         try:
             return datetime.strptime(date_str, fmt)
@@ -49,6 +54,7 @@ def fetch_datasets(country_iso, organization, start_last_modified_str):
     # Obtain all datasets by the country, specified as parameter
     datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"groups:{country_iso.lower()}")
 
+    # Date formats to parse last_modified and start_last_modified parameters
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", '%Y-%m-%d']
 
     for dataset in datasets:
@@ -57,11 +63,13 @@ def fetch_datasets(country_iso, organization, start_last_modified_str):
 
         start_last_modified = parse_date(start_last_modified_str, date_formats)
 
+        # Check if dataset meets criteria based on last_modified and organization
         if last_modified is None or start_last_modified is None or last_modified >= start_last_modified:
             dataset_id = dataset.get_name_or_id(False)
             dataset_name = dataset.get_name_or_id(True)
             dataset_tags = dataset.get_tags()
             dataset_organization_name = dataset.get("organization", {}).get("name", "")
+            # Check if dataset has required tags and organization
             if (
                 IDP_TAG in dataset_tags
                 and "hxl" in dataset_tags
@@ -71,12 +79,15 @@ def fetch_datasets(country_iso, organization, start_last_modified_str):
 
 
 def check_locations(locations, dataset_locations):
+    # Check if all locations are present in dataset_locations
     return all(loc in locations for loc in dataset_locations)
 
 
 def download_all_resources_for_dataset(dataset_id, dataset_name, location):
+    # Read dataset from HDX
     dataset = Dataset.read_from_hdx(dataset_id)
     dataset_metadata = dataset.get_dataset_dict()
+    # Skip archived datasets
     if dataset_metadata["archived"]:
         logging.info(f"Dataset {dataset.get_name_or_id(True)} is archived, skipping...")
         return
@@ -93,6 +104,7 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, location):
 
 
 def write_resource_file(path, resource):
+    # Download resource and upload to S3
     download_url = resource.data.get("url", None)
     file_name = f'{resource.data.get("id", "")}__{resource.data.get("name", None)}'
     file_type = resource.get_file_type()
@@ -111,6 +123,7 @@ def write_resource_file(path, resource):
 
 
 def write_dataset_metadata(dataset_metadata, path):
+    # Write dataset metadata to S3
     dataset_metadata_json = json.dumps(dataset_metadata)
     dataset_metadata_filename = "metadata.json"
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
