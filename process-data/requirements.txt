@@ -1,4 +1,0 @@
-pandas
-regex
-openpyxl
-libhxl
