@@ -4,14 +4,15 @@ import DatasetComponent from './DatasetComponent'
 import { useParams } from 'react-router-dom'
 import { ENDPOINTS } from '../utils/apiEndpoints'
 import PipelineTriggerComponent from './PipelineTriggerComponent'
-import Card from 'react-bootstrap/Card'
-import Button from 'react-bootstrap/Button'
+import { Button, Spinner, Card } from 'react-bootstrap'
 
 const CountryDatasets: React.FC = () => {
+   const [isLoading, setIsLoading] = useState(false)
    const { country } = useParams()
    const [datasets, setDatasets] = useState<any[]>([])
-
+   let timeoutId: NodeJS.Timeout | null = null
    const fetchData = () => {
+      setIsLoading(true)
       axios
          .get(`${ENDPOINTS.datasetsForACountry}/${country}`)
          .then(response => {
@@ -19,6 +20,11 @@ const CountryDatasets: React.FC = () => {
          })
          .catch(error => {
             console.error('Error fetching data: ', error)
+         })
+         .finally(() => {
+            timeoutId = setTimeout(() => {
+               setIsLoading(false)
+            }, 200)
          })
    }
 
@@ -33,7 +39,16 @@ const CountryDatasets: React.FC = () => {
             <Card.Body>
                <Card.Title>{'Available Datasets'}</Card.Title>
                <strong>Reload available datasets: </strong>
-               <Button onClick={fetchData}>Reload</Button>
+               <Button onClick={fetchData} disabled={isLoading}>
+                  {isLoading ? (
+                     <>
+                        <Spinner as='span' animation='border' size='sm' role='status' aria-hidden='true' />
+                        <span style={{ marginLeft: '5px' }}>Loading</span>
+                     </>
+                  ) : (
+                     'Reload'
+                  )}
+               </Button>
                <div style={{ height: '30px' }} />
                {country && Array.isArray(datasets) && (
                   <div>
