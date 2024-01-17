@@ -55,7 +55,7 @@ def fetch_datasets(country_iso, organization, start_last_modified_str):
     datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"groups:{country_iso.lower()}")
 
     # Date formats to parse last_modified and start_last_modified parameters
-    date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", '%Y-%m-%d']
+    date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"]
 
     for dataset in datasets:
         last_modified_str = dataset.get("last_modified", "")
