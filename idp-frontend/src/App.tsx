@@ -3,11 +3,11 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import Header from './Theme/Header'
 import HomePage from './HomePage/HomePage'
 import { Container } from 'react-bootstrap'
-import CountryDatasets from './countryPage/CountryDatasets'
-import FileVisualizer from './fileVisualizer/FileVisualizer'
+import CountryDatasets from './CountryPage/CountryDatasets'
+import FileVisualizer from './FileVisualizer/FileVisualizer'
 import Footer from './Theme/Footer'
 import './App.css'
-import CountryPage from './countryPage/CountryPage'
+import CountryPage from './CountryPage/CountryPage'
 
 const App: React.FC = () => {
    return (

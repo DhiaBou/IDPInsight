@@ -1,6 +1,6 @@
 import React from 'react'
 import Card from 'react-bootstrap/Card'
-import formatDate from '../countryPage/utils'
+import formatDate from '../CountryPage/utils'
 
 interface FileDetailsComponentProps {
    cdvDownloadUrl: string
