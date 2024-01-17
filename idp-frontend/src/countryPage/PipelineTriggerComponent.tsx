@@ -107,7 +107,7 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
                               {' Loading...'}
                            </>
                         ) : (
-                           'Trigger Pipeline'
+                           'Fetch Datasets'
                         )}
                      </button>
                   </div>
@@ -137,7 +137,7 @@ const PipelineTriggerComponent: React.FC<PipelineTriggerComponentProps> = ({ cou
                            data-bs-dismiss='alert'
                            onClick={dismissSuccess}
                         ></button>
-                        <a> Refresh triggered successfully! </a>.
+                        <a> Refresh triggered successfully! </a>
                      </div>
                   </>
                )}
