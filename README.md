@@ -1,46 +1,27 @@
-# SoftwareEngineering-WS2024-DevGurus
+# IDP Insight
 
-Link to our miroboard: https://miro.com/app/board/uXjVNW4YYdg=/?share_link_id=13166685296  
-Pasword for our miroboard: DPUxgWH0UK2ZlXmq
+## Overview
+IDP Insight is designed to automate the collection, processing, and visualization of data on Internally Displaced Persons (IDPs). It serves as a tool for the Early Warning Preparedness Unit (EWPU) team from the World Food Program (WFP), providing a user-friendly dashboard with reliable, up-to-date, and detailed information about IDPs.
 
-# Process-Data
-This README outlines the foundations of the data processing performed in our application.
+### Problem Statement
+There's a need for an automated and reliable system to collect, process, and visualize accurate data on IDPs. Traditional methods involve manual work of accessing and aggregating data from various sources, which is time-consuming and prone to errors.
 
-## HXL
-The data processing carried out by our application relies on the [HXL-Standard](https://hxlstandard.org/). Moreover this standard in particular allowed us to perform data cleaning by providing a uniform pattern for column identifiers independent of the relief organisation that created the dataset. For our MVP we limited the set of relief organization to [IOM](https://www.iom.int/). 
-An example for the column identifier, so called tags, specified by the HXL-Standard is "#affected+idps+ind" which idenfies a column featuring the number idps. HXL does not specifiy the whole tag but subtags which can be concatenated using "+" and the preceeding "#".
+### Solution
+IDP Insight automates the entire process, from data collection, to data processing, to visualization. It gathers data from different sources, cleans and processes it, and presents it in charts. This eliminates the need for manual data aggregation and ensures the data is current and reliable.
 
-## Cleaning
-The cleaning process consists of several steps. Before we actualy perform any operations on the data, we download dataset, mainly excel file from [HDX](https://data.humdata.org/) using their API. Once we obtained all datasets for e.g. a specific country, we open those sheets using pandas.
+## Key Features
+- **Automated Data Collection**: Fetches data from various reliable sources, such as International Organization for Migration (IOM), UNHCR and IDMC and stores it for processing.
+- **Data Processing**: Transforms raw data into clean, organized formats ready for the analysis.
+- **Visualization**: Displays processed data and provides the possibility to create charts.
+- **Continuous Updates**: Regularly updates data to ensure the latest information is always available.
 
-In the first cleaning step, we scan each sheet of an excel file for the aforementioned HXL-Tags using the official   [HXL-library](https://hxlstandard.github.io/libhxl-python/) for python. In case these tags are present in a given sheet, we verify that the sheets is suited for out application by checking if it contains information about the number of idps.
-
-Since not all datasets are ready for further processing at this point, we perform two additional cleaning step:
-* Upwards traversal of the datasets starting from the row containing the HXL-tags. Some datasets feature HXL-tags in the middle in contrast to what the HXL-Standard specifies. 
-* Removal of aggregations by filling out location information. Some datasets aggregate the number of idps on a specific country level.
-* Adjustment of the date-time-format in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
-
-## Processing
-During the actually processing we remove rows that do not specify any information with respect to idps and perform some column renaming such that vital column identifiers are more human readable.
-The currently existing mapping is shown in the table below.
-| HXL Tag               | Description                              |
-|-----------------------|------------------------------------------|
-| `#affected+idps+ind`  | Affected IDPs Individual Count           |
-| `#adm1+name`          | Administrative Level 1 Name              |
-| `#date+survey`        | Survey Date                              |
-| `#date+occured`       | Occurrence Date                          |
-| `#adm0+pcode`         | Country Code                             |
-| `#adm2+name`          | Administrative Level 2 Name              |
-| `#adm1+origin+pcode`  | Origin Administrative Level 1 Code       |
-| `#affected+idps+hh`   | Affected IDPs Household Count            |
-| `#adm0+name`          | Country Name                             |
-| `#adm2+origin+name`   | Origin Administrative Level 2 Name       |
-| `#adm2+pcode`         | Administrative Level 2 Code              |
-| `#date+reported`      | Reported Date                            |
-| `#adm2+origin+pcode`  | Origin Administrative Level 2 Code       |
-| `#adm1+pcode`         | Administrative Level 1 Code              |
-| `#adm1+origin+name`   | Origin Administrative Level 1 Name       |
+## Repository Structure
+- [fetch-data](fetch-data/README.md): Python script deployed to AWS Lambda (`devgurus-fetch-data`). It serves to collect raw data from different sources hosted on HDX and store it in `devgurus-raw-data`.
+- [idp-frontend](idp-frontend/README.md): The front-end application, built with React, deployed to `devgurus-frontend-deployment-bucket`.
+- [process-data](process-data/README.md): Python script in AWS Lambda (`devgurus-process-data`) triggered by uploads to `devgurus-raw-data`. Processes raw data into clean CSV files and stores them in `devgurus-processed-data`.
+- [serverless-api](serverless-api/README.md): Python-based serverless API deployed to `devgurus-serverless-api`. Acts as an interface between data buckets and the frontend, providing access to datasets, raw, and processed files.
+- `.github/workflows`: Contains GitHub Actions workflows for deploying to AWS.
+- [.github/workflows](.github/workflows/main.yml):
+Each folder in this repository contains its own README for more specific details. Please refer to these for in-depth information about each component of the application.
 
 
-## Further Challenges
-The cleaning and renaming functionality we implemented for our mvp is by no means exhaustive. Extending and enhancing this is the main challenge for the future. As additional features user-driven column renaming or text recognition are interesting. Addtionally incorporating data addtional of additional relief agencies like the [UNHCR](https://www.unhcr.org/) may enhanced the quality of our application.

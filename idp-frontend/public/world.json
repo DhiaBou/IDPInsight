@@ -1275,8 +1275,8 @@
         {
           "type": "Polygon",
           "arcs": [[-417, -404]],
-          "id": "PSX",
-          "properties": { "name": "West Bank" }
+          "id": "PSE",
+          "properties": { "name": "Palestinian Territory, Occupied" }
         },
         {
           "type": "Polygon",

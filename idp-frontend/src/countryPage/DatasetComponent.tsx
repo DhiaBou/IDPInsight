@@ -56,8 +56,8 @@ const DatasetComponent: React.FC<DatasetProps> = ({
                backgroundColor: 'transparent',
                border: 'none',
                padding: 0,
-               fontSize: '0.875rem', // Adjust font size to match Card.Footer
-               color: '#007bff' // Adjust color to match Card.Footer (if needed)
+               fontSize: '0.875rem',
+               color: '#007bff'
             }}
             onClick={decoratedOnClick}
          >
@@ -67,7 +67,7 @@ const DatasetComponent: React.FC<DatasetProps> = ({
    }
 
    return (
-      <Card>
+      <Card style={{ backgroundColor: '#f5f5f5' }}>
          <Card.Body>
             <Card.Title>{title}</Card.Title>
             <Card.Text>{description}</Card.Text>

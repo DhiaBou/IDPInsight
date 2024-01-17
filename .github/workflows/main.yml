@@ -3,8 +3,7 @@ name: Deploy Python Lambda
 on:
   push:
     branches:
-      - main
-
+      - 'main'
 jobs:
   deploy-frontend:
       runs-on: ubuntu-latest

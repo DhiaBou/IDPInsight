@@ -20,6 +20,8 @@ def lambda_handler(event, context):
         process_json(bucket_name, file_key)
     elif file_key.endswith(".xlsx"):
         process_xlsx(bucket_name, file_key)
+    elif file_key.endswith(".csv"):
+        process_csv(bucket_name, file_key)
     else:
         logging.info(f"File type not supported for file {file_key}")
 
@@ -51,9 +53,7 @@ def process_xlsx(bucket_name, file_key):
     file_counter = 0
     for sheet_name, df in processed_data_dict.items():
         original_metadata["sheet_name"] = sheet_name
-        new_df = rename_columns(df=df)
-        new_df.dropna(inplace=True)  # drop null values
-        new_df = remove_rows_where_idps_zero(df=new_df)  # Remove rows where 'Affected IDPs Individuals' is 0
+        new_df = post_process_df(df)
 
         # Write to new bucket with same metadata
         output = io.StringIO()
@@ -67,25 +67,38 @@ def process_xlsx(bucket_name, file_key):
             Metadata=original_metadata,
         )
 
+def process_csv(bucket_name, file_key):
+    # Read the CSV file and its metadata
+    s3 = boto3.client('s3')
+    obj = s3.get_object(Bucket=bucket_name, Key=file_key)
+    original_metadata = obj.get("Metadata", {})
+    csv_data = io.StringIO(obj["Body"].read().decode('utf-8'))
+    df = pd.read_csv(csv_data, header= None)
+
+    # Clean the DataFrame
+    clean_df = clean_one_sheet(df)  
+    if clean_df is not None:
+        new_df = post_process_df(clean_df)
+
+        # Write to new bucket with same metadata
+        output = io.StringIO()
+        new_df.to_csv(output, index=False)
+        new_filename = file_key.replace(".csv", "_processed.csv")
+        s3.put_object(
+            Bucket="devgurus-processed-data",
+            Key=new_filename,
+            Body=output.getvalue(),
+            Metadata=original_metadata,
+        )
+
+def post_process_df(clean_df):
+    new_df = rename_columns(df=clean_df)  
+    new_df = new_df.apply(lambda col: col.fillna(0) if col.dtype.kind in 'biufc' else col.fillna(''))
+    new_df = remove_rows_where_idps_zero(df=new_df) 
+    return new_df
 
 def rename_columns(df):
-    new_column_names = {
-        "#affected+idps+ind": "Affected IDPs Individual Count",
-        "#adm1+name": "Administrative Level 1 Name",
-        "#date+survey": "Survey Date",
-        "#date+occured": "Occurance Date",
-        "#adm0+pcode": "Country Code",
-        "#adm2+name": "Administrative Level 2 Name",
-        "#adm1+origin+pcode": "Origin Administrative Level 1 Code",
-        "#affected+idps+hh": "Affected IDPs Household Count",
-        "#adm0+name": "Country Name",
-        "#adm2+origin+name": "Origin Administrative Level 2 Name",
-        "#adm2+pcode": "Administrative Level 2 Code",
-        "#date+reported": "Reported Date",
-        "#adm2+origin+pcode": "Origin Administrative Level 2 Code",
-        "#adm1+pcode": "Administrative Level 1 Code",
-        "#adm1+origin+name": "Origin Administrative Level 1 Name",
-    }
+    new_column_names = {col_name: col_name.strip('#').replace('+', '-') for col_name in df.columns.astype(str)}
 
     # Rename the columns that exist
     df.rename(columns={k: v for k, v in new_column_names.items() if k in df.columns}, inplace=True)

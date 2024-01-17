@@ -4,6 +4,7 @@ import os
 
 import boto3
 import requests
+from datetime import datetime
 from hdx.api.configuration import Configuration, ConfigurationError
 from hdx.data.dataset import Dataset
 from hdx.utilities.easy_logging import setup_logging
@@ -19,12 +20,15 @@ def lambda_handler(event, context):
     setup_logging()
     path_parameters = event.get("pathParameters", {})
     location = event["location"]
-    organization = event["organization"]
+    organization = event.get("organization", "")
+    if organization == "all":
+        organization = ""
+    start_last_modified = event.get("startlastmodified", "")
     try:
         Configuration.create(hdx_site="stage", user_agent="WFP_Project", hdx_read_only=True)
     except ConfigurationError:
         pass
-    fetch_datasets([location], organization)
+    fetch_datasets(location, organization, start_last_modified)
 
     return {
         "statusCode": 200,
@@ -32,26 +36,45 @@ def lambda_handler(event, context):
     }
 
 
-def fetch_datasets(locations, organization):
-    # Obtain all datasets by the organization, specified as paramater
-    datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization}")
+def parse_date(date_str, formats):
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def fetch_datasets(country_iso, organization, start_last_modified_str):
+    # Obtain all datasets by the organization, specified as parameter
+    datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"groups:{country_iso.lower()}")
+
+    date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", '%Y-%m-%d']
 
     for dataset in datasets:
-        dataset_id = dataset.get_name_or_id(False)
-        dataset_name = dataset.get_name_or_id(True)
-        dataset_tags = dataset.get_tags()
-        dataset_locations = dataset.get_location_iso3s()
+        last_modified_str = dataset.get("last_modified", "")
+        last_modified = parse_date(last_modified_str, date_formats)
 
-        if IDP_TAG in dataset_tags and "hxl" in dataset_tags:
-            if check_locations(locations, dataset_locations):
-                download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations)
+        start_last_modified = parse_date(start_last_modified_str, date_formats)
+
+        if last_modified is None or start_last_modified is None or last_modified >= start_last_modified:
+            dataset_id = dataset.get_name_or_id(False)
+            dataset_name = dataset.get_name_or_id(True)
+            dataset_tags = dataset.get_tags()
+            dataset_organization_name = dataset.get("organization", {}).get("name", "")
+            if (
+                IDP_TAG in dataset_tags
+                and "hxl" in dataset_tags
+                and (organization == "" or dataset_organization_name == organization)
+            ):
+                download_all_resources_for_dataset(dataset_id, dataset_name, country_iso)
 
 
 def check_locations(locations, dataset_locations):
     return all(loc in locations for loc in dataset_locations)
 
 
-def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locations):
+def download_all_resources_for_dataset(dataset_id, dataset_name, location):
     dataset = Dataset.read_from_hdx(dataset_id)
     dataset_metadata = dataset.get_dataset_dict()
     if dataset_metadata["archived"]:
@@ -60,10 +83,6 @@ def download_all_resources_for_dataset(dataset_id, dataset_name, dataset_locatio
 
     logging.info(f"Downloading ressources for {dataset_metadata['name']}...")
     resources = Dataset.get_all_resources([dataset])
-
-    # Assuming each dataset is associated with one location
-    # TODO: Consider datasets with multiple locations
-    location = dataset_locations[0]
 
     # Data stored under /tmp/country/dataset_name
     path = "tmp/" + location + "/" + dataset_id.replace("/", "_") + "__" + dataset_name.replace("/", "_")

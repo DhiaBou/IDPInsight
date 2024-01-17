@@ -18,7 +18,7 @@ const FileDetailsComponent: React.FC<FileDetailsComponentProps> = ({
    lastModified
 }) => {
    return (
-      <Card>
+      <Card style={{ backgroundColor: '#f5f5f5' }}>
          <Card.Body>
             <Card.Title>{name}</Card.Title>
             <Card.Text>{description}</Card.Text>
