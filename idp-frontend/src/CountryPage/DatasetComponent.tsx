@@ -5,11 +5,13 @@ import Accordion from 'react-bootstrap/Accordion'
 import { useAccordionButton } from 'react-bootstrap/AccordionButton'
 import { Link } from 'react-router-dom'
 import formatDate from './utils'
+// properties for the processed file
 interface ProcessedFile {
    file_name: string
    last_modified: string
 }
 
+// properties for the dataset of the file
 interface DatasetProps {
    country: string
    datasetFolderName: string
@@ -32,6 +34,7 @@ const FileItem: React.FC<ProcessedFile & { country: string; datasetFolderName: s
    </ListGroup.Item>
 )
 
+// show the information for the dataset
 const DatasetComponent: React.FC<DatasetProps> = ({
    datasetFolderName,
    country,
@@ -65,7 +68,7 @@ const DatasetComponent: React.FC<DatasetProps> = ({
          </button>
       )
    }
-
+   // return value
    return (
       <Card style={{ backgroundColor: '#f5f5f5' }}>
          <Card.Body>

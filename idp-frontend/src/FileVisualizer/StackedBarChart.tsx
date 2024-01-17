@@ -2,10 +2,12 @@ import React from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 import { COLORS, BarData } from './utilities'
 
+// the properties for the stacked bar chart
 interface StackedBarChartProps {
    data: BarData[]
 }
 
+// returns a pie chart
 export const StackedBarChart: React.FC<StackedBarChartProps> = ({ data }) => {
    const stackKeySet = new Set<string>()
    data.forEach(item => {

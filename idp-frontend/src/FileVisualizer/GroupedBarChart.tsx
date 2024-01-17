@@ -1,10 +1,12 @@
 import React from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 
+//has the data for the grouped by chart
 interface BarChartProps {
    data: any[]
 }
 
+// the grouped by chart
 export const GroupedBarChart: React.FC<BarChartProps> = ({ data }) => (
    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
       <BarChart width={800} height={600} data={data}>

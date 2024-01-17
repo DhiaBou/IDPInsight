@@ -3,6 +3,7 @@ import { Col, Container, Row } from 'react-bootstrap'
 import { ENDPOINTS } from '../utils/apiEndpoints'
 import { WorldMapAndSelector } from './WorldMapAndSelector'
 import logo from './logo.png'
+// this function gets the countries that have available datasets
 export const fetchData = async (): Promise<any> => {
    try {
       const response = await fetch(ENDPOINTS.getCountries)
@@ -16,6 +17,8 @@ export const fetchData = async (): Promise<any> => {
       return []
    }
 }
+
+// this function displays the home the world map that have the available datasets
 const HomePageComponent = () => {
    const [data, setData] = useState<any[]>([])
 
@@ -33,6 +36,7 @@ const HomePageComponent = () => {
    return <WorldMapAndSelector countryISOs={data} />
 }
 
+// this component serves as the home page. It has the logo on top, then thw world map below it
 const HomePage: React.FC = () => {
    return (
       <Container>

@@ -2,6 +2,7 @@ import React from 'react'
 import Card from 'react-bootstrap/Card'
 import formatDate from '../CountryPage/utils'
 
+//the props for the file details
 interface FileDetailsComponentProps {
    cdvDownloadUrl: string
    description: string
@@ -10,6 +11,7 @@ interface FileDetailsComponentProps {
    downloadUrl: string
 }
 
+// returns the file details
 const FileDetailsComponent: React.FC<FileDetailsComponentProps> = ({
    name,
    downloadUrl,

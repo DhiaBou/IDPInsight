@@ -4,10 +4,12 @@ import { ENDPOINTS } from '../utils/apiEndpoints'
 import Card from 'react-bootstrap/Card'
 import { useParams } from 'react-router-dom'
 
+// function to test if the datasets has the given tags
 function hasTags(tags: any[], requiredTags: any[]) {
    return requiredTags.every(requiredTag => tags.some(tag => tag.display_name === requiredTag))
 }
 
+// find the available organizations for a certain country
 async function findOrganizations(country: string) {
    const query = 'internally displaced persons-idp'
    const filterQuery = `groups:${country}`
@@ -44,6 +46,34 @@ async function findOrganizations(country: string) {
    }
 }
 
+// show the alerts
+function showAlerts(error: any, dismissError: () => void, success: boolean, dismissSuccess: () => void) {
+   return (
+      <>
+         {error && (
+            <>
+               <div style={{ height: '20px' }} />
+               <div className='alert alert-dismissible alert-danger'>
+                  <button type='button' className='btn-close' data-bs-dismiss='alert' onClick={dismissError}></button>
+                  <a> Error triggering the Pipeline </a>
+               </div>
+            </>
+         )}
+         {success && (
+            <>
+               <div style={{ height: '20px' }} />
+               <div className='alert alert-dismissible alert-success'>
+                  <button type='button' className='btn-close' data-bs-dismiss='alert' onClick={dismissSuccess}></button>
+                  <strong> Refresh triggered successfully! </strong> <br />
+                  <a>Please wait a few moments and then reload. If no datasets appeared, try adjusting the date.</a>
+               </div>
+            </>
+         )}
+      </>
+   )
+}
+
+// trigger the pipeline
 const PipelineTriggerComponent: React.FC = () => {
    const { country } = useParams()
 
@@ -74,6 +104,7 @@ const PipelineTriggerComponent: React.FC = () => {
       setSelectedDate(event.target.value)
    }
 
+   // triggers the refresh
    const triggerRefresh = async () => {
       try {
          setIsLoading(true)
@@ -161,37 +192,7 @@ const PipelineTriggerComponent: React.FC = () => {
                   </div>
                </div>
 
-               {error && (
-                  <>
-                     <div style={{ height: '20px' }} />
-                     <div className='alert alert-dismissible alert-danger'>
-                        <button
-                           type='button'
-                           className='btn-close'
-                           data-bs-dismiss='alert'
-                           onClick={dismissError}
-                        ></button>
-                        <a> Error triggering the Pipeline </a>
-                     </div>
-                  </>
-               )}
-               {success && (
-                  <>
-                     <div style={{ height: '20px' }} />
-                     <div className='alert alert-dismissible alert-success'>
-                        <button
-                           type='button'
-                           className='btn-close'
-                           data-bs-dismiss='alert'
-                           onClick={dismissSuccess}
-                        ></button>
-                        <strong> Refresh triggered successfully! </strong> <br />
-                        <a>
-                           Please wait a few moments and then reload. If no datasets appeared, try adjusting the date.
-                        </a>
-                     </div>
-                  </>
-               )}
+               {showAlerts(error, dismissError, success, dismissSuccess)}
             </div>
          </Card.Body>
       </Card>
