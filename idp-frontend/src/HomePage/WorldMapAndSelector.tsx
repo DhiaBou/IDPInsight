@@ -11,6 +11,7 @@ type HighlightedWorldMapProps = {
    countryISOs: string[]
 }
 
+// this is the actual world map
 const MapContainer: React.FC<
    HighlightedWorldMapProps & { selectedCountryId: string; onCountryClick: (countryName: string, id: string) => void }
 > = ({ countryISOs, selectedCountryId, onCountryClick }) => (
@@ -49,6 +50,7 @@ const MapContainer: React.FC<
    </Card>
 )
 
+// this serves as a dropdown menu to choose the countries
 const CountrySelector: React.FC<{ geographies: any[]; selectedCountry: string; onSelect: (eventKey: any) => void }> = ({
    geographies,
    selectedCountry,
@@ -70,6 +72,7 @@ const CountrySelector: React.FC<{ geographies: any[]; selectedCountry: string; o
    </Dropdown>
 )
 
+// this button is grayed out when no country is selected
 const CountryDetailsButton: React.FC<{ selectedCountry: string; onClick: () => void }> = ({
    selectedCountry,
    onClick
@@ -90,6 +93,7 @@ const CountryDetailsButton: React.FC<{ selectedCountry: string; onClick: () => v
    </Button>
 )
 
+// this component has the world map colored with the available countries, and it has a selector to select the country
 export const WorldMapAndSelector: React.FC<HighlightedWorldMapProps> = ({ countryISOs }) => {
    const navigate = useNavigate()
    const [selectedCountry, setSelectedCountry] = useState<string>('')

@@ -2,6 +2,7 @@ import React from 'react'
 import { PieChart, Pie, Cell, Tooltip } from 'recharts'
 import { COLORS } from './utilities'
 
+//the properties for the pie chart
 interface PieChartData {
    name: string
    value: number
@@ -11,6 +12,7 @@ interface PieChartProps {
    data: PieChartData[]
 }
 
+// returns a pie chart
 export const GroupedPieChart: React.FC<PieChartProps> = ({ data }) => {
    const LABEL_THRESHOLD = 0.02
 

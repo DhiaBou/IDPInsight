@@ -16,6 +16,7 @@ interface SelectorProps {
    onChange: (value: string) => void
 }
 
+// acts as a selector
 const Selector: React.FC<SelectorProps> = ({ id, label, value, options, onChange }) => (
    <div className='mb-3' style={{ fontSize: '0.8rem' }}>
       <label htmlFor={id} className='form-label'>
@@ -32,6 +33,7 @@ const Selector: React.FC<SelectorProps> = ({ id, label, value, options, onChange
    </div>
 )
 
+// generates the chars from the given props
 const ChartGenerator: React.FC<ChartGeneratorProps> = ({ data }) => {
    const chartTypes = ['Bar Chart', 'Pie Chart', 'Stacked Bar Chart']
    const [chartType, setChartType] = useState<string>(chartTypes[0])

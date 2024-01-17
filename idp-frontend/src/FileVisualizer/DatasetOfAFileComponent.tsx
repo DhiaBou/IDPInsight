@@ -2,13 +2,14 @@ import React from 'react'
 import Card from 'react-bootstrap/Card'
 import formatDate from '../CountryPage/utils'
 
+//the props of the dataset
 interface DatasetOfAFileComponentProps {
    title: string
    description: string
    lastModified: string
    source: string
 }
-
+// returns a dataset with its medata as a card
 const DatasetOfAFileComponent: React.FC<DatasetOfAFileComponentProps> = ({
    title,
    description,

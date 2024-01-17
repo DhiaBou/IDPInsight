@@ -1,3 +1,4 @@
+// used colors
 export const COLORS = [
    '#0088FE', // Blue
    '#FFBB28', // Yellow
@@ -16,6 +17,7 @@ export const COLORS = [
    '#A52A2A' // Brown
 ]
 
+// function to aggregate the data
 export const aggregateData = (data: { [key: string]: any }[], groupByKey: string, valueKey: string) => {
    const result: { [key: string]: number } = {}
 
@@ -39,6 +41,7 @@ export interface BarData {
    [key: string]: string | number
 }
 
+// function to aggregate the data for stacked bar chart
 export const aggregateDataForStackedBarChart = (
    data: any[],
    groupByKey: string,

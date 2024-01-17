@@ -6,12 +6,14 @@ import DatasetOfAFileComponent from './DatasetOfAFileComponent'
 import FileDetailsComponent from './FileDetailsComponent'
 import CsvVisualizer from './CsvVisualizer'
 
+//the route params
 interface RouteParams {
    dataset: string
    country: string
    file: string
 }
 
+//visualizes the file as a tabular format
 const FileVisualizer: React.FC = () => {
    // @ts-ignore
    const { dataset, file, country } = useParams<RouteParams>()
