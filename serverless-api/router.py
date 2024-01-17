@@ -6,11 +6,13 @@ BASE_ROUTE = "tmp"
 
 class Router:
     def __init__(self, raw_data_bucket_name, processed_data_bucket_name, s3_client):
+        # Initialize Router with S3 bucket names and client
         self.raw_data_bucket = raw_data_bucket_name
         self.processed_data_bucket = processed_data_bucket_name
         self.s3_client = s3_client
 
     def route(self, event):
+        # Route the incoming event to the appropriate method based on the resource
         resource = event["resource"]
         path = event.get("path")
         path_parameters = event.get("pathParameters", {})
@@ -31,6 +33,7 @@ class Router:
             return "Path Not Found", 404
 
     def get_file_content_and_metadata(self, country_isocode, file_name, dataset):
+        # Get content and metadata for a specific file within a dataset
         decoded_file_name = urllib.parse.unquote_plus(file_name)
         decoded_dataset_name = urllib.parse.unquote_plus(dataset)
 
@@ -59,17 +62,20 @@ class Router:
         }
 
     def generate_presigned_url(self, bucket_name, file_key, expiration=3600):
+        # Generate a presigned URL for downloading an object from S3
         return self.s3_client.generate_presigned_url(
             "get_object", Params={"Bucket": bucket_name, "Key": file_key}, ExpiresIn=expiration
         )
 
     def get_file_id(self, bucket_name, file_key):
+        # Get the file ID from the object metadata
         obj = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
         original_metadata = obj.get("Metadata", {})
 
         return original_metadata.get("id", "")
 
     def read_csv_file(self, bucket_name, file_key):
+        # Read the content of a CSV file from S3
         try:
             response = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
             csv_content = response["Body"].read().decode("utf-8")
@@ -79,6 +85,7 @@ class Router:
             return None
 
     def get_datasets_for_a_country(self, country_isocode):
+        # Get metadata for all datasets within a specific country
         datasets = self.list_folders(self.processed_data_bucket, f"tmp/{country_isocode}/")
         country_datasets = []
 
@@ -96,15 +103,18 @@ class Router:
         return country_datasets
 
     def get_metadata_for_a_dataset(self, country_isocode, dataset):
+        # Get metadata for a specific dataset within a country
         metadata_file_key = f"tmp/{country_isocode}/{dataset}/metadata.json"
         metadata_content = self.read_json_file(self.processed_data_bucket, metadata_file_key)
         return metadata_content
 
     def get_countries(self):
+        # Get a list of countries (folders) within the processed data bucket
         countries_folders = self.list_folders(self.processed_data_bucket, "tmp/")
         return countries_folders
 
     def get_countries_datasets(self):
+        # Get metadata for all datasets within all countries
         countries_folders = self.list_folders(self.processed_data_bucket, "tmp/")
         country_datasets = {}
 
@@ -114,6 +124,7 @@ class Router:
         return country_datasets
 
     def list_files_and_their_date(self, bucket_name, prefix, file_extension=".csv"):
+        # List files and their last modified date within a specific prefix
         paginator = self.s3_client.get_paginator("list_objects_v2")
         files_and_their_date = []
 
@@ -132,6 +143,7 @@ class Router:
         return files_and_their_date
 
     def read_json_file(self, bucket_name, file_key):
+        # Read the content of a JSON file from S3
         try:
             response = self.s3_client.get_object(Bucket=bucket_name, Key=file_key)
             metadata_json = json.loads(response["Body"].read().decode("utf-8"))
@@ -141,6 +153,7 @@ class Router:
             return None
 
     def extract_metadata(self, metadata_json):
+        # Extract specific metadata fields of interest
         tags_of_interest = [
             "id",
             "last_modified",
@@ -155,6 +168,7 @@ class Router:
         return filtered_metadata
 
     def list_folders(self, bucket_name, prefix):
+        # List folders
         paginator = self.s3_client.get_paginator("list_objects_v2")
         folder_names = set()
 
