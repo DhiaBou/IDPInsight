@@ -14,7 +14,6 @@ S3_RESOURCE = boto3.resource("s3")
 IDP_TAG = "internally displaced persons-idp"
 
 
-
 def lambda_handler(event, context):
     setup_logging()
     path_parameters = event.get("pathParameters", {})
@@ -28,7 +27,7 @@ def lambda_handler(event, context):
     try:
         fetch_datasets(location, organization, start_last_modified)
     except Exception as e:
-        print('Error happened')
+        print("Error happened")
         print(e)
 
     return {
@@ -45,12 +44,15 @@ def parse_date(date_str, formats):
             continue
     return None
 
+
 def fetch_datasets(location, organization, start_last_modified_str):
     # Obtain all datasets by the organization, specified as parameter
     if organization == "":
         datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"country_iso3:{location}")
     else:
-        datasets = Dataset.search_in_hdx(q=IDP_TAG, fq=f"organization:{organization} AND country_iso3:{location}")
+        datasets = Dataset.search_in_hdx(
+            q=IDP_TAG, fq=f"organization:{organization} AND country_iso3:{location}"
+        )
 
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"]
 
@@ -119,4 +121,3 @@ def write_dataset_metadata(dataset_metadata, path):
     dataset_metadata_filename = "metadata.json"
     dataset_metadata_path = os.path.join(path, dataset_metadata_filename)
     S3_RESOURCE.Object(S3_BUCKET, dataset_metadata_path).put(Body=dataset_metadata_json)
-

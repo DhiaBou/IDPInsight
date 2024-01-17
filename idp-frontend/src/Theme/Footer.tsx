@@ -1,8 +1,14 @@
 import React from 'react'
-import { Container, Navbar, ListGroup } from 'react-bootstrap'
+import { Col, Row } from 'react-bootstrap'
 
 const Footer: React.FC = () => {
-   return <div style={{ height: '100px' }} />
+   return (
+      <Row className='bg-dark text-white text-center py-3'>
+         <Col>
+            <p>&copy; 2024 IDP Insight</p>
+         </Col>
+      </Row>
+   )
 }
 
 export default Footer
